@@ -1,1 +1,2 @@
-console.log("Hello, world!");
+import { Application } from "pixi.js";
+console.log(Application);
