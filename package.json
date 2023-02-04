@@ -1,11 +1,10 @@
 {
-  "name": "RENAME_ME",
+  "name": "arcade",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
   "scripts": {
     "start": "parcel ./src/index.html",
-    "build": "parcel build --public-url ./ --no-source-maps"
+    "build": "parcel build ./src/index.html --public-url ./ --no-source-maps"
   },
   "author": "Andrew Blakey",
   "license": "MIT",

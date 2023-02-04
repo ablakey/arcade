@@ -1,0 +1,26 @@
+@font-face {
+    font-family: "Apple";
+    src: url("./font.woff2") format("woff2");
+  }
+
+
+body * {
+    color: darkgray;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background-color: black;
+    font-family: 'Apple', serif;
+}
+
+#viewport {
+    width: 100%;
+    max-width: 600px;
+    aspect-ratio: 1;
+    image-rendering: pixelated;
+    border: 1px solid grey;
+}
