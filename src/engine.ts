@@ -1,28 +1,44 @@
 import { Container, Renderer } from "pixi.js";
+import { BalloonShoot, Game } from "./balloonShoot";
 
-export function buildEngine(settings: { fps: number; onTick: (delta: number) => void }) {
-  const viewport = document.querySelector("#viewport")! as HTMLCanvasElement;
-  const renderer = new Renderer({ antialias: false, view: viewport, width: 200, height: 200 });
-  const stage = new Container();
+const FPS = 30;
 
-  let lastTime = 0;
-  let accumulatedTime = 0;
-  function animate() {
+const GAMES = [BalloonShoot];
+
+export class Engine {
+  public stage: Container;
+  private renderer: Renderer;
+  private lastTime = 0;
+  private accumulatedTime = 0;
+  private currentGame: Game | undefined;
+
+  constructor() {
+    const viewport = document.querySelector("#viewport")! as HTMLCanvasElement;
+    this.renderer = new Renderer({ antialias: false, view: viewport, width: 100, height: 100 });
+    this.stage = new Container();
+    this.pickRandomGame();
+    requestAnimationFrame(this.tick.bind(this));
+  }
+
+  private pickRandomGame() {
+    this.stage.removeChildren();
+    const PickedGame = GAMES[Math.floor(Math.random() * GAMES.length)];
+    this.currentGame = new PickedGame(this);
+  }
+
+  private tick() {
     const currentTime = performance.now();
-    const deltaTime = currentTime - lastTime;
-    accumulatedTime += deltaTime;
-    lastTime = currentTime;
+    const deltaTime = currentTime - this.lastTime;
+    this.accumulatedTime += deltaTime;
+    this.lastTime = currentTime;
 
-    settings.onTick(deltaTime);
+    this.currentGame?.tick(deltaTime);
 
-    if (accumulatedTime > 1000 / settings.fps) {
-      accumulatedTime -= 1000 / settings.fps;
-      renderer.render(stage);
+    if (this.accumulatedTime > 1000 / FPS) {
+      this.accumulatedTime -= 1000 / FPS;
+      this.renderer.render(this.stage);
     }
 
-    requestAnimationFrame(animate);
+    requestAnimationFrame(this.tick.bind(this));
   }
-  requestAnimationFrame(animate);
-
-  return { stage };
 }

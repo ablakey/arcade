@@ -1,3 +1,3 @@
-import { runGame } from "./game";
+import { Engine } from "./engine";
 
-runGame();
+window.onload = () => new Engine();
