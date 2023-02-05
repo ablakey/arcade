@@ -1,5 +1,5 @@
 import { Container, Renderer } from "pixi.js";
-import { BalloonShoot, Game } from "./balloonShoot";
+import { BalloonShoot, Game } from "./games/balloonShoot";
 
 const FPS = 30;
 
