@@ -18,17 +18,16 @@ export abstract class Game {
   }
 }
 
+const graphics = new Graphics().lineStyle(0).beginFill(0xffffff, 1).drawCircle(0, 0, 10).endFill();
+graphics.y = 20;
+let goRight = true;
+
 export class BalloonShoot extends Game {
   name = "Balloon Shoot!";
 
   structureCount = 0;
 
   protected start() {
-    const graphics = new Graphics()
-      .lineStyle(0)
-      .beginFill(0xffffff, 1)
-      .drawCircle(120, 20, 10)
-      .endFill();
     this.engine.stage.addChild(graphics);
 
     this.placeStructure(40, 80);
@@ -45,7 +44,21 @@ export class BalloonShoot extends Game {
     this.structureCount++;
   }
 
-  tick(delta: number) {}
+  tick(delta: number) {
+    if (goRight) {
+      graphics.x += delta / 40;
+    } else {
+      graphics.x -= delta / 40;
+    }
+    if (!goRight && graphics.x <= 0) {
+      goRight = true;
+    }
+
+    if (goRight && graphics.x >= 100) {
+      console.log("go left now");
+      goRight = false;
+    }
+  }
 
   end() {
     console.log("Unload!");

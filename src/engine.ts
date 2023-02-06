@@ -2,7 +2,7 @@ import { CRTFilter } from "@pixi/filter-crt";
 import { Container, Filter, Rectangle, Renderer } from "pixi.js";
 import { BalloonShoot, Game } from "./games/balloonShoot";
 
-const FPS = 30;
+const FPS = 20;
 
 const GAMES = [BalloonShoot];
 
@@ -19,7 +19,7 @@ const fragSrc = `precision highp float;
   uniform vec4 inputSize;
   uniform vec4 outputFrame;
 
-  vec2 warpAmount = vec2( 1.0 / 64.0, 1.0 / 16.0 );
+  vec2 warpAmount = vec2( 1.0 / 32.0, 1.0 / 16.0 );
 
   vec2 warp(vec2 pos)
   {
@@ -63,12 +63,13 @@ export class Engine {
       view: document.querySelector("#viewport")! as HTMLCanvasElement,
       width: WIDTH,
       height: WIDTH / ASPECT,
+      backgroundColor: 0x101010,
     });
 
     this.crtFilter = new CRTFilter({
-      lineWidth: 10,
-      lineContrast: 0.7,
-      noise: 0.2,
+      lineWidth: 15,
+      lineContrast: 0.5,
+      noise: 0.1,
       vignetting: 0,
       curvature: 1,
     });
@@ -95,7 +96,7 @@ export class Engine {
     this.lastTime = currentTime;
 
     // Filter
-    this.crtFilter.time += 0.3;
+    this.crtFilter.time += 0.2;
     this.crtFilter.seed = Math.random();
 
     this.currentGame?.tick(deltaTime);
