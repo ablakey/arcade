@@ -2,7 +2,7 @@ import { CRTFilter } from "@pixi/filter-crt";
 import { Container, Filter, Rectangle, Renderer } from "pixi.js";
 import { BalloonShoot, Game } from "./games/balloonShoot";
 
-const FPS = 20;
+const FPS = 60;
 
 const GAMES = [BalloonShoot];
 
@@ -76,7 +76,7 @@ export class Engine {
 
     this.stage = new Container();
     this.stage.scale = { x: HEIGHT / 100, y: HEIGHT / 100 };
-    this.stage.filters = [this.crtFilter, filter];
+    this.stage.filters = [this.crtFilter];
     this.stage.filterArea = new Rectangle(0, 0, WIDTH, HEIGHT);
 
     this.pickRandomGame();

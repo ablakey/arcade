@@ -6,7 +6,7 @@ import house from "../assets/house.png";
 BaseTexture.defaultOptions.scaleMode = SCALE_MODES.NEAREST;
 
 export abstract class Game {
-  name: string;
+  static title: string;
   protected engine: Engine;
   protected abstract start(): void;
   abstract tick(delta: number): void;
@@ -23,7 +23,7 @@ graphics.y = 20;
 let goRight = true;
 
 export class BalloonShoot extends Game {
-  name = "Balloon Shoot!";
+  title = "Balloon Shoot!";
 
   structureCount = 0;
 
