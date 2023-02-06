@@ -5,6 +5,7 @@
 
 body * {
   color: darkgray;
+  box-sizing: border-box;
 }
 
 body {
@@ -16,25 +17,21 @@ body {
   font-family: "Apple", serif;
 }
 
-#screen {
+#container {
   position: relative;
-  width: 100%;
-  max-width: 600px;
-  aspect-ratio: 1;
-  border: 1px solid grey;
 }
 
-#crtfilter {
-  position: absolute;
+#bezel {
   width: 100%;
   height: 100%;
+  position: absolute;
+  border: 2px solid black;
 }
 
 #viewport {
+  /* border: 1px solid grey; */
   width: 100%;
-  height: 100%;
+  max-width: 600px;
+  aspect-ratio: 4/3;
   image-rendering: pixelated;
-  position: absolute;
-  top: 0px;
-  left: 0px;
 }

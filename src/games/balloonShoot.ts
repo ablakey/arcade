@@ -27,14 +27,14 @@ export class BalloonShoot extends Game {
     const graphics = new Graphics()
       .lineStyle(0)
       .beginFill(0xffffff, 1)
-      .drawCircle(10, 10, 10)
+      .drawCircle(120, 20, 10)
       .endFill();
     this.engine.stage.addChild(graphics);
 
-    this.placeStructure(40, 84);
-    this.placeStructure(10, 84);
-    this.placeStructure(60, 84);
-    this.placeStructure(77, 84);
+    this.placeStructure(40, 80);
+    this.placeStructure(10, 80);
+    this.placeStructure(60, 80);
+    this.placeStructure(77, 80);
   }
 
   private placeStructure(x: number, y: number) {
