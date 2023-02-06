@@ -1,26 +1,40 @@
 @font-face {
-    font-family: "Apple";
-    src: url("./font.woff2") format("woff2");
-  }
-
+  font-family: "Apple";
+  src: url("./font.woff2") format("woff2");
+}
 
 body * {
-    color: darkgray;
+  color: darkgray;
 }
 
 body {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    background-color: black;
-    font-family: 'Apple', serif;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background-color: black;
+  font-family: "Apple", serif;
+}
+
+#screen {
+  position: relative;
+  width: 100%;
+  max-width: 600px;
+  aspect-ratio: 1;
+  border: 1px solid grey;
+}
+
+#crtfilter {
+  position: absolute;
+  width: 100%;
+  height: 100%;
 }
 
 #viewport {
-    width: 100%;
-    max-width: 600px;
-    aspect-ratio: 1;
-    image-rendering: pixelated;
-    border: 1px solid grey;
+  width: 100%;
+  height: 100%;
+  image-rendering: pixelated;
+  position: absolute;
+  top: 0px;
+  left: 0px;
 }

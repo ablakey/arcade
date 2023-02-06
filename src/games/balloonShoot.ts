@@ -1,7 +1,9 @@
-import { Graphics, Sprite } from "pixi.js";
+import { BaseTexture, Graphics, SCALE_MODES, Sprite } from "pixi.js";
 import { Engine } from "../engine";
 
-import house from "./assets/house.png";
+import house from "../assets/house.png";
+
+BaseTexture.defaultOptions.scaleMode = SCALE_MODES.NEAREST;
 
 export abstract class Game {
   name: string;
@@ -25,7 +27,7 @@ export class BalloonShoot extends Game {
     const graphics = new Graphics()
       .lineStyle(0)
       .beginFill(0xffffff, 1)
-      .drawCircle(14, 14, 10)
+      .drawCircle(10, 10, 10)
       .endFill();
     this.engine.stage.addChild(graphics);
 
