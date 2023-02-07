@@ -1,9 +1,9 @@
-import { Container, Rectangle, Renderer, Sprite } from "pixi.js";
+import { BaseTexture, Container, Rectangle, Renderer, SCALE_MODES } from "pixi.js";
 import { buildCrtFilter } from "./filters";
+import { GameObject, SpriteName } from "./GameObject";
 import { BalloonShoot } from "./games/balloonShoot";
-import house from "./assets/house.png";
-import balloon from "./assets/balloon.png";
-import { Game, SpriteDetails } from "./types";
+
+import { Game } from "./types";
 
 const FPS = 60;
 
@@ -15,11 +15,6 @@ const WIDTH = 800;
 
 const HEIGHT = WIDTH / ASPECT;
 
-const SPRITES = {
-  house: { sprite: house, hitArea: "circle", radius: 4, top: 0, left: 0 },
-  balloon: { sprite: balloon, hitArea: "rect", width: 16, height: 16, top: 0, left: 0 },
-} satisfies Record<string, SpriteDetails>;
-
 export class Engine {
   public stage: Container;
   private renderer: Renderer;
@@ -28,6 +23,9 @@ export class Engine {
   private currentGame: Game | undefined;
 
   constructor() {
+    // Required, otherwise all textures get linear interpolation and look fuzzy.
+    BaseTexture.defaultOptions.scaleMode = SCALE_MODES.NEAREST;
+
     this.renderer = new Renderer({
       antialias: false,
       view: document.querySelector("#viewport")! as HTMLCanvasElement,
@@ -45,12 +43,8 @@ export class Engine {
     requestAnimationFrame(this.tick.bind(this));
   }
 
-  public addSprite(name: keyof typeof SPRITES, x: number, y: number): Sprite {
-    const { sprite } = SPRITES[name];
-
-    const s = Sprite.from(sprite);
-    s.x = x;
-    s.y = y;
+  public addGameObject(name: SpriteName, x: number, y: number): GameObject {
+    const s = GameObject.create(name, x, y);
     this.stage.addChild(s);
     return s;
   }

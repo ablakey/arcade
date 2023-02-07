@@ -1,37 +1,28 @@
-import { BaseTexture, Graphics, SCALE_MODES } from "pixi.js";
 import { Game } from "../types";
 
-// TODO: does this work?
-BaseTexture.defaultOptions.scaleMode = SCALE_MODES.NEAREST;
-
-const graphics = new Graphics().lineStyle(0).beginFill(0xffffff, 1).drawCircle(0, 0, 10).endFill();
-graphics.y = 20;
-let goRight = true;
+const HOUSE_POSITIONS = [
+  [10, 88],
+  [20, 88],
+  [30, 88],
+  [58, 88],
+  [68, 88],
+  [80, 88],
+  [93, 88],
+];
 
 export class BalloonShoot extends Game {
   title = "Balloon Shoot!";
 
   protected start() {
-    this.engine.stage.addChild(graphics);
-    this.engine.addSprite("house", 20, 20);
-    this.engine.addSprite("balloon", 10, 10);
+    this.engine.addGameObject("balloon", 10, 10);
+
+    HOUSE_POSITIONS.forEach(([x, y]) => {
+      this.engine.addGameObject("houseSmall", x, y);
+    });
+    // Add houses.
   }
 
-  tick(delta: number) {
-    if (goRight) {
-      graphics.x += delta / 40;
-    } else {
-      graphics.x -= delta / 40;
-    }
-    if (!goRight && graphics.x <= 0) {
-      goRight = true;
-    }
-
-    if (goRight && graphics.x >= 100) {
-      console.log("go left now");
-      goRight = false;
-    }
-  }
+  tick(delta: number) {}
 
   end() {
     console.log("Unload!");

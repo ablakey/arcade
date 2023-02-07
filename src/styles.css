@@ -5,6 +5,8 @@
 
 * {
   box-sizing: border-box;
+  touch-action: manipulation;
+  user-select: none;
 }
 
 body {
@@ -12,13 +14,13 @@ body {
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  background-color: black;
-  font-family: "Apple", serif;
-  color: white;
+  background-color: rgb(200, 200, 200);
 }
 
-body > * {
+body * {
+  font-family: "Apple", serif;
   max-width: 600px;
+  color: rgb(20, 20, 20);
 }
 
 #container {
@@ -38,4 +40,31 @@ body > * {
   max-width: 600px;
   aspect-ratio: 4/3;
   image-rendering: pixelated;
+}
+
+#controls {
+  padding-top: 24px;
+}
+
+.pushable {
+  background: rgb(30, 30, 30);
+  border-radius: 3px;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  outline-offset: 4px;
+}
+
+.pushable .front {
+  display: block;
+  padding: 16px;
+  border-radius: 3px;
+  font-size: 1.25rem;
+  background: rgb(60, 60, 60);
+  color: rgb(200, 200, 200);
+  transform: translateY(-6px);
+}
+
+.pushable:active .front {
+  transform: translateY(-2px);
 }
