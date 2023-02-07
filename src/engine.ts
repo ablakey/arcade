@@ -1,6 +1,9 @@
-import { CRTFilter } from "@pixi/filter-crt";
-import { Container, Filter, Rectangle, Renderer } from "pixi.js";
-import { BalloonShoot, Game } from "./games/balloonShoot";
+import { Container, Rectangle, Renderer, Sprite } from "pixi.js";
+import { buildCrtFilter } from "./filters";
+import { BalloonShoot } from "./games/balloonShoot";
+import house from "./assets/house.png";
+import balloon from "./assets/balloon.png";
+import { Game, SpriteDetails } from "./types";
 
 const FPS = 60;
 
@@ -12,42 +15,10 @@ const WIDTH = 800;
 
 const HEIGHT = WIDTH / ASPECT;
 
-const fragSrc = `precision highp float;
-  varying vec2 vTextureCoord;
-  uniform sampler2D uSampler;
-  uniform vec2 dimensions;
-  uniform vec4 inputSize;
-  uniform vec4 outputFrame;
-
-  vec2 warpAmount = vec2( 1.0 / 32.0, 1.0 / 16.0 );
-
-  vec2 warp(vec2 pos)
-  {
-    // warping by the center of filterArea
-    pos = pos * 2.0 - 1.0;
-    pos *= vec2(
-      1.0 + (pos.y * pos.y) * warpAmount.x,
-      1.0 + (pos.x * pos.x) * warpAmount.y
-    );
-    return pos * 0.5 + 0.5;;
-  }
-
-  void main() {
-    vec2 coord = vTextureCoord;
-    coord = coord * inputSize.xy / outputFrame.zw;
-    coord = warp( coord );
-    coord = coord * inputSize.zw * outputFrame.zw;
-    gl_FragColor = texture2D( uSampler, coord );
-  }
-`
-  .split("\n")
-  .reduce((c, a) => c + a.trim() + "\n");
-
-const filter = new Filter(undefined, fragSrc);
-filter.apply = (filterManager, input, output, clear) => {
-  filterManager.applyFilter(filter, input, output, clear);
-};
-filter.padding = 0;
+const SPRITES = {
+  house: { sprite: house, hitArea: "circle", radius: 4, top: 0, left: 0 },
+  balloon: { sprite: balloon, hitArea: "rect", width: 16, height: 16, top: 0, left: 0 },
+} satisfies Record<string, SpriteDetails>;
 
 export class Engine {
   public stage: Container;
@@ -55,7 +26,6 @@ export class Engine {
   private lastTime = 0;
   private accumulatedTime = 0;
   private currentGame: Game | undefined;
-  private crtFilter: CRTFilter;
 
   constructor() {
     this.renderer = new Renderer({
@@ -66,21 +36,23 @@ export class Engine {
       backgroundColor: 0x101010,
     });
 
-    this.crtFilter = new CRTFilter({
-      lineWidth: 15,
-      lineContrast: 0.5,
-      noise: 0.1,
-      vignetting: 0,
-      curvature: 1,
-    });
-
     this.stage = new Container();
     this.stage.scale = { x: HEIGHT / 100, y: HEIGHT / 100 };
-    this.stage.filters = [this.crtFilter];
+    this.stage.filters = [buildCrtFilter()];
     this.stage.filterArea = new Rectangle(0, 0, WIDTH, HEIGHT);
 
     this.pickRandomGame();
     requestAnimationFrame(this.tick.bind(this));
+  }
+
+  public addSprite(name: keyof typeof SPRITES, x: number, y: number): Sprite {
+    const { sprite } = SPRITES[name];
+
+    const s = Sprite.from(sprite);
+    s.x = x;
+    s.y = y;
+    this.stage.addChild(s);
+    return s;
   }
 
   private pickRandomGame() {
@@ -94,10 +66,6 @@ export class Engine {
     const deltaTime = currentTime - this.lastTime;
     this.accumulatedTime += deltaTime;
     this.lastTime = currentTime;
-
-    // Filter
-    this.crtFilter.time += 0.2;
-    this.crtFilter.seed = Math.random();
 
     this.currentGame?.tick(deltaTime);
 
