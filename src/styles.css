@@ -20,7 +20,7 @@ body {
 body * {
   font-family: "Apple", serif;
   max-width: 600px;
-  color: #095786;
+  color: #000;
 }
 
 #container {
@@ -36,25 +36,56 @@ body * {
 
 #controls {
   padding-top: 24px;
+  display: flex;
+  justify-content: space-around;
+}
+
+.arrows {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.arrows-top {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 12px;
 }
 
 .pushable {
-  border-radius: 3px;
   border: none;
   padding: 0;
   cursor: pointer;
   outline-offset: 4px;
-  background: #ae0000;
+  background: #417154;
 }
 
 .pushable .front {
-  background: #db4646;
+  background: #6d9775;
   display: block;
   padding: 16px;
-  border-radius: 3px;
   font-size: 1.25rem;
-  color: #000;
   transform: translateY(-6px);
+}
+
+.top,
+.top > span {
+  border-radius: 5px 5px 0 0;
+}
+
+.left,
+.left > span {
+  border-radius: 5px 0 0 5px;
+}
+
+.bottom,
+.bottom > span {
+  border-radius: 0 0 5px 5px;
+}
+
+.right,
+.right > span {
+  border-radius: 0 5px 5px 0;
 }
 
 .pushable:active .front {
