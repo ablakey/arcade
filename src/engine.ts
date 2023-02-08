@@ -31,12 +31,12 @@ export class Engine {
       view: document.querySelector("#viewport")! as HTMLCanvasElement,
       width: WIDTH,
       height: WIDTH / ASPECT,
-      backgroundColor: 0x101010,
+      backgroundColor: 0x000000,
     });
 
     this.stage = new Container();
     this.stage.scale = { x: HEIGHT / 100, y: HEIGHT / 100 };
-    this.stage.filters = [buildCrtFilter()];
+    // this.stage.filters = [buildCrtFilter()];
     this.stage.filterArea = new Rectangle(0, 0, WIDTH, HEIGHT);
 
     this.pickRandomGame();

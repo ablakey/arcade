@@ -8,14 +8,14 @@ export function buildCrtFilter() {
   const filter = new CRTFilter({
     lineWidth: 15,
     lineContrast: 0.5,
-    noise: 0.1,
+    noise: 0.2,
     vignetting: 0,
-    curvature: 1,
+    curvature: 0,
   });
 
   function update() {
     filter.seed = Math.random();
-    filter.time += 0.2;
+    filter.time += 0.1;
     requestAnimationFrame(update);
   }
 

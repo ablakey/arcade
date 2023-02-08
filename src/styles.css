@@ -14,28 +14,20 @@ body {
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  background-color: rgb(200, 200, 200);
+  background-color: #e6cea0;
 }
 
 body * {
   font-family: "Apple", serif;
   max-width: 600px;
-  color: rgb(20, 20, 20);
+  color: #095786;
 }
 
 #container {
   position: relative;
 }
 
-#bezel {
-  width: 100%;
-  height: 100%;
-  position: absolute;
-  border: 2px solid black;
-}
-
 #viewport {
-  /* border: 1px solid grey; */
   width: 100%;
   max-width: 600px;
   aspect-ratio: 4/3;
@@ -47,21 +39,21 @@ body * {
 }
 
 .pushable {
-  background: rgb(30, 30, 30);
   border-radius: 3px;
   border: none;
   padding: 0;
   cursor: pointer;
   outline-offset: 4px;
+  background: #ae0000;
 }
 
 .pushable .front {
+  background: #db4646;
   display: block;
   padding: 16px;
   border-radius: 3px;
   font-size: 1.25rem;
-  background: rgb(60, 60, 60);
-  color: rgb(200, 200, 200);
+  color: #000;
   transform: translateY(-6px);
 }
 
