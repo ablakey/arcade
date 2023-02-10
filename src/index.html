@@ -13,27 +13,46 @@
       <canvas id="viewport"></canvas>
     </div>
     <div id="controls">
-      <div class="arrows">
-        <div class="arrows-top">
-          <button class="pushable top">
-            <span class="front">U</span>
+      <div id="arrows">
+        <div>
+          <button class="pushable left">
+            <span class="shadow"></span>
+            <span class="edge"></span>
+            <span class="front">󿭲</span>
           </button>
         </div>
-        <div class="arrows-bottom">
-          <button class="pushable left">
-            <span class="front">L</span>
+        <div>
+          <button class="pushable up">
+            <span class="shadow"></span>
+            <span class="edge"></span>
+            <span class="front">󿭳</span>
           </button>
-          <button class="pushable bottom">
-            <span class="front">D</span>
+          <button class="pushable down">
+            <span class="shadow"></span>
+            <span class="edge"></span>
+            <span class="front">󿭱</span>
           </button>
+        </div>
+        <div>
           <button class="pushable right">
-            <span class="front">R</span>
+            <span class="shadow"></span>
+            <span class="edge"></span>
+            <span class="front">󿭰</span>
           </button>
         </div>
       </div>
-      <button class="pushable">
-        <span class="front">LAUNCH!</span>
-      </button>
+      <div id="buttons">
+        <button class="pushable">
+          <span class="shadow"></span>
+          <span class="edge"></span>
+          <span class="front big">A</span>
+        </button>
+        <button class="pushable">
+          <span class="shadow"></span>
+          <span class="edge"></span>
+          <span class="front big disabled">B</span>
+        </button>
+      </div>
     </div>
     <p>There's a bunch of text here that explains stuff or whatnot...</p>
     <link rel="stylesheet" href="styles.css" type="text/css" />

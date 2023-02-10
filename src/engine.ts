@@ -1,5 +1,5 @@
 import { BaseTexture, Container, Rectangle, Renderer, SCALE_MODES } from "pixi.js";
-import { buildCrtFilter, buildGlowFilter } from "./filters";
+import { buildCrtFilter } from "./filters";
 import { GameObject, SpriteName } from "./GameObject";
 import { BalloonShoot } from "./games/balloonShoot";
 
@@ -36,7 +36,7 @@ export class Engine {
 
     this.stage = new Container();
     this.stage.scale = { x: HEIGHT / 100, y: HEIGHT / 100 };
-    this.stage.filters = [buildGlowFilter(), buildCrtFilter()];
+    // this.stage.filters = [buildGlowFilter(), buildCrtFilter()];
     this.stage.filterArea = new Rectangle(0, 0, WIDTH, HEIGHT);
 
     this.pickRandomGame();
