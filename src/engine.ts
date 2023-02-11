@@ -15,12 +15,12 @@ const WIDTH = 800;
 const HEIGHT = WIDTH / ASPECT;
 
 const BUTTONS = [
-  { name: "Up", codes: ["ArrowUp"] },
-  { name: "Down", codes: ["ArrowDown"] },
-  { name: "Left", codes: ["ArrowLeft"] },
-  { name: "Right", codes: ["ArrowRight"] },
+  { name: "Up", codes: ["ArrowUp", "KeyW"] },
+  { name: "Down", codes: ["ArrowDown", "KeyS"] },
+  { name: "Left", codes: ["ArrowLeft", "KeyA"] },
+  { name: "Right", codes: ["ArrowRight", "KeyD"] },
   { name: "A", codes: ["Space"] },
-  { name: "B", codes: ["Shift"] },
+  { name: "B", codes: ["ShiftLeft", "ShiftRight"] },
 ] as const;
 
 type ButtonName = (typeof BUTTONS)[number]["name"];
