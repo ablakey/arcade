@@ -14,16 +14,16 @@ const WIDTH = 800;
 
 const HEIGHT = WIDTH / ASPECT;
 
-const BUTTONS = {
-  Up: { code: "ArrowUp" },
-  Down: { code: "ArrowDown" },
-  Left: { code: "ArrowLeft" },
-  Right: { code: "ArrowRight" },
-  A: { code: "Space" },
-  B: { code: "Shift" },
-};
+const BUTTONS = [
+  { name: "Up", codes: ["ArrowUp"] },
+  { name: "Down", codes: ["ArrowDown"] },
+  { name: "Left", codes: ["ArrowLeft"] },
+  { name: "Right", codes: ["ArrowRight"] },
+  { name: "A", codes: ["Space"] },
+  { name: "B", codes: ["Shift"] },
+] as const;
 
-type ButtonName = keyof typeof BUTTONS;
+type ButtonName = (typeof BUTTONS)[number]["name"];
 
 export class Engine {
   public stage: Container;
@@ -31,6 +31,7 @@ export class Engine {
   private lastTime = 0;
   private accumulatedTime = 0;
   private currentGame: Game | undefined;
+  private input: Record<ButtonName, boolean>;
 
   constructor() {
     // Required, otherwise all textures get linear interpolation and look fuzzy.
@@ -52,12 +53,32 @@ export class Engine {
     requestAnimationFrame(this.tick.bind(this));
 
     // Bind keys.
-    Object.entries(BUTTONS).forEach(([name, button]) => {
+    BUTTONS.forEach(({ name }) => {
+      const buttonName = name as ButtonName;
       const buttonEl = document.querySelector<HTMLButtonElement>(`#button${name}`)!;
-      const boundDown = this.buttonDown.bind(this, name as ButtonName);
-      const boundUp = this.buttonUp.bind(this, name as ButtonName);
+      const boundDown = this.buttonDown.bind(this, buttonName);
+      const boundUp = this.buttonUp.bind(this, buttonName);
       ["mousedown", "touchstart"].forEach((c) => buttonEl.addEventListener(c, boundDown));
       ["mouseup", "mouseleave", "touchend"].forEach((c) => buttonEl.addEventListener(c, boundUp));
+    });
+
+    this.input = Object.fromEntries(BUTTONS.map(({ name }) => [name, false])) as Record<
+      ButtonName,
+      boolean
+    >;
+
+    (
+      [
+        ["keydown", this.buttonDown],
+        ["keyup", this.buttonUp],
+      ] as const
+    ).forEach(([code, callback]) => {
+      document.addEventListener(code, (e) => {
+        const button = BUTTONS.find((b) => (b.codes as readonly string[]).includes(e.code));
+        if (button) {
+          callback(button.name, e);
+        }
+      });
     });
   }
 
