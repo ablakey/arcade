@@ -27,7 +27,26 @@ body * {
 }
 
 #container {
+  width: 100%;
   position: relative;
+}
+
+#container div {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+#overlay {
+  color: white;
+  font-size: 1em;
+  text-align: center;
+  white-space: pre;
 }
 
 #viewport {
@@ -121,6 +140,10 @@ body * {
 .left .edge {
   padding: 8px 18px 8px 6px;
   border-radius: 6px 0 0 6px;
+}
+
+.up {
+  margin-bottom: 10px;
 }
 
 .up .front,

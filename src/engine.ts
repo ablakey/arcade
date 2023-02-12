@@ -7,7 +7,7 @@ import { Game } from "./types";
 
 const FPS = 60;
 
-const GAMES = [Tutorial, BalloonShoot];
+const GAMES = [BalloonShoot];
 
 const BUTTONS = [
   { name: "Up", codes: ["ArrowUp", "KeyW"] },
@@ -41,7 +41,7 @@ export class Engine {
 
     this.stage = new Container();
 
-    // this.pickRandomGame();
+    this.pickRandomGame();
     requestAnimationFrame(this.tick.bind(this));
 
     // Bind keys.
@@ -80,10 +80,25 @@ export class Engine {
     return s;
   }
 
+  public setTitle(text: string) {
+    const titleEl = document.querySelector<HTMLDivElement>("#overlay")!;
+    titleEl.style.fontSize = `${titleEl.offsetWidth / 20}pt`;
+    const addChar = () => {
+      const currentLength = titleEl.innerHTML.length;
+      if (titleEl.innerHTML.trimEnd().length < text.length) {
+        titleEl.innerHTML = text.slice(0, currentLength + 1).padEnd(text.length, " ");
+        setTimeout(addChar, 200);
+      }
+    };
+
+    addChar();
+  }
+
   private pickRandomGame() {
     this.stage.removeChildren();
     const PickedGame = GAMES[Math.floor(Math.random() * GAMES.length)];
     this.currentGame = new PickedGame(this);
+    this.setTitle(this.currentGame.title.toUpperCase());
   }
 
   private buttonDown(name: ButtonName, e: Event) {
