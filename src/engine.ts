@@ -14,8 +14,7 @@ const BUTTONS = [
   { name: "Down", codes: ["ArrowDown", "KeyS"] },
   { name: "Left", codes: ["ArrowLeft", "KeyA"] },
   { name: "Right", codes: ["ArrowRight", "KeyD"] },
-  { name: "A", codes: ["Space"] },
-  { name: "B", codes: ["ShiftLeft", "ShiftRight"] },
+  { name: "Space", codes: ["Space"] },
 ] as const;
 
 type ButtonName = (typeof BUTTONS)[number]["name"];
@@ -37,7 +36,7 @@ export class Engine {
       view: document.querySelector("#viewport")! as HTMLCanvasElement,
       width: 160,
       height: 120,
-      backgroundColor: 0xffff00,
+      backgroundColor: 0x000000,
     });
 
     this.stage = new Container();
