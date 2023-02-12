@@ -20,12 +20,12 @@ type ButtonConfig = {
 };
 
 export abstract class Game {
-  static title: string;
+  abstract title: string;
 
   static buttons: ButtonConfig[];
 
-  protected engine: Engine;
-  protected abstract start(): void;
+  engine: Engine;
+  abstract start(): void;
   abstract tick(delta: number): void;
   abstract end(): void;
 

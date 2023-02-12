@@ -13,7 +13,7 @@ const HOUSE_POSITIONS = [
 export class BalloonShoot extends Game {
   title = "Balloon Shoot!";
 
-  protected start() {
+  start() {
     this.engine.addGameObject("balloon", 10, 10);
 
     HOUSE_POSITIONS.forEach(([x, y]) => {

@@ -1,18 +1,13 @@
-import { BaseTexture, Container, Rectangle, Renderer, SCALE_MODES } from "pixi.js";
+import { BaseTexture, Container, Renderer, SCALE_MODES } from "pixi.js";
 import { GameObject, SpriteName } from "./GameObject";
 import { BalloonShoot } from "./games/balloonShoot";
+import { Tutorial } from "./games/tutorial";
 
 import { Game } from "./types";
 
 const FPS = 60;
 
-const GAMES = [BalloonShoot];
-
-const ASPECT = 4 / 3;
-
-const WIDTH = 800;
-
-const HEIGHT = WIDTH / ASPECT;
+const GAMES = [Tutorial, BalloonShoot];
 
 const BUTTONS = [
   { name: "Up", codes: ["ArrowUp", "KeyW"] },
@@ -40,16 +35,14 @@ export class Engine {
     this.renderer = new Renderer({
       antialias: false,
       view: document.querySelector("#viewport")! as HTMLCanvasElement,
-      width: WIDTH,
-      height: WIDTH / ASPECT,
-      backgroundColor: 0x000000,
+      width: 160,
+      height: 120,
+      backgroundColor: 0xffff00,
     });
 
     this.stage = new Container();
-    this.stage.scale = { x: HEIGHT / 100, y: HEIGHT / 100 };
-    this.stage.filterArea = new Rectangle(0, 0, WIDTH, HEIGHT);
 
-    this.pickRandomGame();
+    // this.pickRandomGame();
     requestAnimationFrame(this.tick.bind(this));
 
     // Bind keys.
