@@ -2,7 +2,19 @@ import { Sprite } from "pixi.js";
 import balloon from "./assets/balloon.png";
 import house from "./assets/house.png";
 import houseSmall from "./assets/houseSmall.png";
-import { GameObjectConfig } from "./types";
+
+export type GameObjectConfig =
+  | { sprite: string; top: number; left: number } & (
+      | {
+          collisionShape: "circle";
+          radius: number;
+        }
+      | {
+          collisionShape: "rect";
+          width: number;
+          height: number;
+        }
+    );
 
 const configs = {
   house: { sprite: house, collisionShape: "circle", radius: 4, top: 0, left: 0 },

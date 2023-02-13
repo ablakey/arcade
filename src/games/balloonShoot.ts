@@ -1,4 +1,4 @@
-import { Game } from "../types";
+import { Game } from "../Game";
 
 const HOUSE_POSITIONS = [
   [10, 88],

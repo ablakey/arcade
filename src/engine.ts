@@ -1,13 +1,16 @@
 import { BaseTexture, Container, Renderer, SCALE_MODES } from "pixi.js";
+import { Game } from "./Game";
 import { GameObject, SpriteName } from "./GameObject";
 import { BalloonShoot } from "./games/balloonShoot";
 import { Tutorial } from "./games/tutorial";
 
-import { Game } from "./types";
+import { sleep } from "./utils";
 
 const FPS = 60;
+const TITLE_BLINK_DELAY = 500;
+const TITLE_REVEAL_DELAY = 75;
 
-const GAMES = [BalloonShoot];
+const GAME_CATALOG = [BalloonShoot, Tutorial];
 
 const BUTTONS = [
   { name: "Up", codes: ["ArrowUp", "KeyW"] },
@@ -41,7 +44,7 @@ export class Engine {
 
     this.stage = new Container();
 
-    this.pickRandomGame();
+    this.loadGame(BalloonShoot); // TODO; way to pick a game
     requestAnimationFrame(this.tick.bind(this));
 
     // Bind keys.
@@ -80,25 +83,32 @@ export class Engine {
     return s;
   }
 
-  public setTitle(text: string) {
+  public async showTitle(text: string) {
     const titleEl = document.querySelector<HTMLDivElement>("#overlay")!;
     titleEl.style.fontSize = `${titleEl.offsetWidth / 20}pt`;
-    const addChar = () => {
-      const currentLength = titleEl.innerHTML.length;
-      if (titleEl.innerHTML.trimEnd().length < text.length) {
-        titleEl.innerHTML = text.slice(0, currentLength + 1).padEnd(text.length, " ");
-        setTimeout(addChar, 200);
-      }
-    };
 
-    addChar();
+    // Reveal characters.
+    for (let x = 0; x < text.length; x++) {
+      titleEl.innerHTML = text.slice(0, x + 1).padEnd(text.length, " ");
+      await sleep(TITLE_REVEAL_DELAY);
+    }
+
+    // Blink title.
+    for (let x = 0; x < 3; x++) {
+      titleEl.innerHTML = "".padEnd(text.length, " ");
+      await sleep(TITLE_BLINK_DELAY);
+      titleEl.innerHTML = text;
+      await sleep(TITLE_BLINK_DELAY);
+    }
+
+    titleEl.innerHTML = "";
   }
 
-  private pickRandomGame() {
+  private async loadGame(Game: { new (engine: Engine): Game }) {
     this.stage.removeChildren();
-    const PickedGame = GAMES[Math.floor(Math.random() * GAMES.length)];
-    this.currentGame = new PickedGame(this);
-    this.setTitle(this.currentGame.title.toUpperCase());
+    this.currentGame = new Game(this);
+    await this.showTitle(this.currentGame.title.toUpperCase());
+    this.currentGame.start();
   }
 
   private buttonDown(name: ButtonName, e: Event) {
