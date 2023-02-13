@@ -44,10 +44,10 @@ export class Engine {
 
     this.stage = new Container();
 
-    this.loadGame(BalloonShoot); // TODO; way to pick a game
-    requestAnimationFrame(this.tick.bind(this));
+    /**
+     * Set up I/O.
+     */
 
-    // Bind keys.
     BUTTONS.forEach(({ name }) => {
       const buttonName = name as ButtonName;
       const buttonEl = document.querySelector<HTMLButtonElement>(`#button${name}`)!;
@@ -75,6 +75,13 @@ export class Engine {
         }
       });
     });
+
+    /**
+     * Begin game selection loop.
+     */
+
+    this.loadGame(BalloonShoot); // TODO; way to pick a game
+    requestAnimationFrame(this.tick.bind(this));
   }
 
   public addGameObject(name: SpriteName, x: number, y: number): GameObject {
