@@ -1,16 +1,12 @@
 import { BaseTexture, Container, Renderer, SCALE_MODES } from "pixi.js";
 import { Game } from "./Game";
 import { GameObject, SpriteName } from "./GameObject";
-import { BalloonShoot } from "./games/balloonShoot";
-import { Tutorial } from "./games/tutorial";
 
 import { sleep } from "./utils";
 
 const FPS = 60;
 const TITLE_BLINK_DELAY = 500;
 const TITLE_REVEAL_DELAY = 75;
-
-const GAME_CATALOG = [BalloonShoot, Tutorial];
 
 const BUTTONS = [
   { name: "Up", codes: ["ArrowUp", "KeyW"] },
@@ -77,10 +73,8 @@ export class Engine {
     });
 
     /**
-     * Begin game selection loop.
+     * Begin engine loop.
      */
-
-    this.loadGame(BalloonShoot); // TODO; way to pick a game
     requestAnimationFrame(this.tick.bind(this));
   }
 
@@ -100,6 +94,8 @@ export class Engine {
       await sleep(TITLE_REVEAL_DELAY);
     }
 
+    await sleep(TITLE_BLINK_DELAY - TITLE_REVEAL_DELAY);
+
     // Blink title.
     for (let x = 0; x < 3; x++) {
       titleEl.innerHTML = "".padEnd(text.length, " ");
@@ -108,14 +104,23 @@ export class Engine {
       await sleep(TITLE_BLINK_DELAY);
     }
 
+    await sleep(TITLE_BLINK_DELAY);
+
     titleEl.innerHTML = "";
   }
 
-  private async loadGame(Game: { new (engine: Engine): Game }) {
-    this.stage.removeChildren();
+  public async play(Game: { new (engine: Engine): Game }) {
+    // Setup.
     this.currentGame = new Game(this);
     await this.showTitle(this.currentGame.title.toUpperCase());
-    this.currentGame.start();
+
+    // Run.
+    await this.currentGame.play();
+
+    // Cleanup.
+    this.currentGame?.end();
+    this.currentGame = undefined;
+    this.stage.removeChildren();
   }
 
   private buttonDown(name: ButtonName, e: Event) {
@@ -128,6 +133,7 @@ export class Engine {
   }
 
   private tick() {
+    console.log(1);
     const currentTime = performance.now();
     const deltaTime = currentTime - this.lastTime;
     this.accumulatedTime += deltaTime;

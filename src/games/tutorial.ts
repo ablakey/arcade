@@ -2,19 +2,9 @@ import { Game } from "../Game";
 
 export class Tutorial extends Game {
   title = "Introduction";
-  start() {}
+  async play() {}
 
   tick(delta: number) {}
 
   end() {}
 }
-
-/**
- * TODO
- *
- * text that eplxains:
- *
- * "Tap, click, or use WASD/Arrows and Shift + Space"
- *
- *
- */

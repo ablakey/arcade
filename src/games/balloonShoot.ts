@@ -13,13 +13,15 @@ const HOUSE_POSITIONS = [
 export class BalloonShoot extends Game {
   title = "Balloon Shoot!";
 
-  start() {
+  async play() {
     this.engine.addGameObject("balloon", 10, 10);
 
     HOUSE_POSITIONS.forEach(([x, y]) => {
       this.engine.addGameObject("houseSmall", x, y);
     });
     // Add houses.
+
+    return await this.blockUntilFinished();
   }
 
   tick(delta: number) {}
