@@ -5,5 +5,6 @@
       "strict": true,
       "moduleResolution": "node",
       "allowSyntheticDefaultImports": true,
+      "strictPropertyInitialization": false
     }
   }

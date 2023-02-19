@@ -7,6 +7,7 @@ import { sleep } from "./utils";
 const FPS = 60;
 const TITLE_BLINK_DELAY = 500;
 const TITLE_REVEAL_DELAY = 75;
+const SHOW_TITLE = false;
 
 const BUTTONS = [
   { name: "Up", codes: ["ArrowUp", "KeyW"] },
@@ -78,8 +79,12 @@ export class Engine {
     requestAnimationFrame(this.tick.bind(this));
   }
 
-  public addGameObject(name: SpriteName, x: number, y: number): GameObject {
-    const s = GameObject.create(name, x, y);
+  public addGameObject<T extends Record<string, any>>(
+    name: SpriteName,
+    position: [number, number],
+    state: T
+  ): GameObject & T {
+    const s = GameObject.create(name, position, state);
     this.stage.addChild(s);
     return s;
   }
@@ -112,7 +117,9 @@ export class Engine {
   public async play(Game: { new (engine: Engine): Game }) {
     // Setup.
     this.currentGame = new Game(this);
-    await this.showTitle(this.currentGame.title.toUpperCase());
+    if (SHOW_TITLE) {
+      await this.showTitle(this.currentGame.title.toUpperCase());
+    }
 
     // Run.
     await this.currentGame.play();
@@ -133,7 +140,6 @@ export class Engine {
   }
 
   private tick() {
-    console.log(1);
     const currentTime = performance.now();
     const deltaTime = currentTime - this.lastTime;
     this.accumulatedTime += deltaTime;

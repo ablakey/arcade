@@ -25,15 +25,20 @@ const configs = {
 export type SpriteName = keyof typeof configs;
 
 export class GameObject extends Sprite {
-  // @ts-expect-error: Gets initialized using the static factory `create`.
   public config: GameObjectConfig;
 
-  public static create(name: SpriteName, x: number, y: number): GameObject {
+  public static create<T extends Record<string, any>>(
+    name: SpriteName,
+    position: [number, number],
+    state: T
+  ): GameObject & T {
     const config = configs[name];
-    const s = GameObject.from(config.sprite) as GameObject;
-    s.x = x;
-    s.y = y;
+    const s = GameObject.from(config.sprite) as GameObject & T;
+    s.x = position[0];
+    s.y = position[1];
     s.config = config;
+
+    Object.apply(s, state);
 
     return s;
   }
