@@ -3,7 +3,7 @@ import { Game } from "./Game";
 import { GraphicsObject, GraphicsState } from "./GraphicsObject";
 import { SpriteName, SpriteObject, SpriteState } from "./SpriteObject";
 
-import { sleep } from "../utils";
+import { sleep } from "./utils";
 
 const FPS = 60;
 const TITLE_BLINK_DELAY = 500;
