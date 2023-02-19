@@ -17,6 +17,16 @@ export function balloonShoot(engine: Engine) {
     return engine.addSprite("houseSmall", p, { isHit: false });
   });
 
+  // const line = engine.addGraphics([10, 10], {}, (g) => {
+  //   // draw polygon
+  //   const path = [60, 37, 70, 46, 78, 42, 73, 57, 59, 52];
+
+  //   g.lineStyle(0);
+  //   g.beginFill(0x3500fa, 1);
+  //   g.drawPolygon(path);
+  //   g.endFill();
+  // });
+
   function tick(delta: number) {
     console.log("tickety");
   }

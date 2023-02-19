@@ -1,8 +1,9 @@
-import { BaseTexture, Container, Renderer, SCALE_MODES } from "pixi.js";
+import { BaseTexture, Container, Graphics, Renderer, SCALE_MODES } from "pixi.js";
 import { Game } from "./Game";
-import { GameObject, GameObjectState, SpriteName, SpriteObject } from "./GameObject";
+import { GraphicsObject, GraphicsState } from "./GraphicsObject";
+import { SpriteName, SpriteObject, SpriteState } from "./SpriteObject";
 
-import { sleep } from "./utils";
+import { sleep } from "../utils";
 
 const FPS = 60;
 const TITLE_BLINK_DELAY = 500;
@@ -81,14 +82,24 @@ export class Engine {
     requestAnimationFrame(this.tick.bind(this));
   }
 
-  public addSprite<T extends GameObjectState>(
+  public addSprite<T extends SpriteState>(
     name: SpriteName,
     position: [number, number],
     state: T
-  ): GameObject & T {
+  ): SpriteObject & T {
     const s = SpriteObject.create(name, position, state);
     this.stage.addChild(s);
     return s;
+  }
+
+  public addGraphics<T extends GraphicsState>(
+    position: [number, number],
+    state: T,
+    drawFn: (g: Graphics) => void
+  ): GraphicsObject & T {
+    const g = GraphicsObject.create(position, state, drawFn);
+    this.stage.addChild(g);
+    return g;
   }
 
   public async showTitle(text: string) {
