@@ -1,6 +1,6 @@
 import { BaseTexture, Container, Renderer, SCALE_MODES } from "pixi.js";
 import { Game } from "./Game";
-import { GameObject, SpriteName } from "./GameObject";
+import { GameObject, GameObjectState, SpriteName, SpriteObject } from "./GameObject";
 
 import { sleep } from "./utils";
 
@@ -24,7 +24,8 @@ export class Engine {
   private renderer: Renderer;
   private lastTime = 0;
   private accumulatedTime = 0;
-  private currentGame: Game | undefined;
+  private currentGame: ReturnType<Game> | undefined;
+  private isFinished: boolean;
   private input: Record<ButtonName, boolean>;
 
   constructor() {
@@ -40,6 +41,7 @@ export class Engine {
     });
 
     this.stage = new Container();
+    this.isFinished = false;
 
     /**
      * Set up I/O.
@@ -79,12 +81,12 @@ export class Engine {
     requestAnimationFrame(this.tick.bind(this));
   }
 
-  public addGameObject<T extends Record<string, any>>(
+  public addSprite<T extends GameObjectState>(
     name: SpriteName,
     position: [number, number],
     state: T
   ): GameObject & T {
-    const s = GameObject.create(name, position, state);
+    const s = SpriteObject.create(name, position, state);
     this.stage.addChild(s);
     return s;
   }
@@ -114,18 +116,24 @@ export class Engine {
     titleEl.innerHTML = "";
   }
 
-  public async play(Game: { new (engine: Engine): Game }) {
+  public async play(initGame: Game) {
     // Setup.
-    this.currentGame = new Game(this);
+    this.currentGame = initGame(this);
     if (SHOW_TITLE) {
       await this.showTitle(this.currentGame.title.toUpperCase());
     }
 
     // Run.
-    await this.currentGame.play();
+    while (true) {
+      if (this.isFinished) {
+        break;
+      }
+
+      await sleep(500);
+    }
 
     // Cleanup.
-    this.currentGame?.end();
+    // this.currentGame?.end();
     this.currentGame = undefined;
     this.stage.removeChildren();
   }

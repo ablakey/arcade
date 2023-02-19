@@ -1,7 +1,11 @@
-import { Sprite } from "pixi.js";
+import { Container, Graphics, Sprite } from "pixi.js";
 import balloon from "./assets/balloon.png";
 import house from "./assets/house.png";
 import houseSmall from "./assets/houseSmall.png";
+
+export abstract class GameObject extends Container {
+  public config: GameObjectConfig;
+}
 
 export type GameObjectConfig =
   | { sprite: string; top: number; left: number } & (
@@ -24,22 +28,43 @@ const configs = {
 
 export type SpriteName = keyof typeof configs;
 
-export class GameObject extends Sprite {
+// Don't allow state names that would clobber existing attributes.
+export type GameObjectState = Record<string, any> & Partial<Record<keyof Sprite, never>>;
+
+export class SpriteObject extends Sprite implements GameObject {
   public config: GameObjectConfig;
 
-  public static create<T extends Record<string, any>>(
+  public static create<T extends GameObjectState>(
     name: SpriteName,
     position: [number, number],
     state: T
-  ): GameObject & T {
+  ): SpriteObject & T {
     const config = configs[name];
-    const s = GameObject.from(config.sprite) as GameObject & T;
+    const s = SpriteObject.from(config.sprite) as SpriteObject;
     s.x = position[0];
     s.y = position[1];
     s.config = config;
+    Object.assign(s, state);
 
-    Object.apply(s, state);
+    return s as any;
+  }
+}
 
-    return s;
+export class GraphicsObject extends Graphics implements GameObject {
+  public config: GameObjectConfig;
+
+  public static create<T extends GameObjectState>(
+    name: SpriteName,
+    position: [number, number],
+    state: T
+  ): GraphicsObject & T {
+    const config = configs[name];
+    const s = new Graphics() as GraphicsObject;
+    s.x = position[0];
+    s.y = position[1];
+    s.config = config;
+    Object.assign(s, state);
+
+    return s as any;
   }
 }

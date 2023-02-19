@@ -1,5 +1,4 @@
-import { Game } from "../Game";
-import { GameObject } from "../GameObject";
+import { Engine } from "../engine";
 
 const HOUSE_POSITIONS: [number, number][] = [
   [10, 112],
@@ -11,27 +10,41 @@ const HOUSE_POSITIONS: [number, number][] = [
   [93, 112],
 ];
 
-export class BalloonShoot extends Game {
-  title = "Balloon Shoot!";
-  private balloon: GameObject & { movingUp: boolean };
-  private houses: GameObject[];
+export function balloonShoot(engine: Engine) {
+  const balloon = engine.addSprite("balloon", [10, 10], { movingUp: true });
 
-  async play() {
-    const x = this.engine.addGameObject("balloon", [10, 10], { movingUp: true });
-    // Add houses.
-    this.houses = HOUSE_POSITIONS.map((p) => {
-      return this.engine.addGameObject("houseSmall", p, { destroyed: false });
-    });
+  const houses = HOUSE_POSITIONS.map((p) => {
+    return engine.addSprite("houseSmall", p, { isHit: false });
+  });
 
-    return await this.blockUntilFinished();
+  function tick(delta: number) {
+    console.log("tickety");
   }
 
-  tick(delta: number) {
-    if (this.balloon) {
-    }
-  }
-
-  end() {
-    console.log("Unload!");
-  }
+  return { title: "Balloon Shoot!", tick };
 }
+
+// class BalloonShoot extends Game {
+//   title = "Balloon Shoot!";
+//   private balloon: GameObject & { movingUp: boolean };
+//   private houses: GameObject[];
+
+//   async play() {
+//     const x = this.engine.addGameObject("balloon", [10, 10], { movingUp: true });
+//     // Add houses.
+//     this.houses = HOUSE_POSITIONS.map((p) => {
+//       return this.engine.addGameObject("houseSmall", p, { destroyed: false });
+//     });
+
+//     return await this.blockUntilFinished();
+//   }
+
+//   tick(delta: number) {
+//     if (this.balloon) {
+//     }
+//   }
+
+//   end() {
+//     console.log("Unload!");
+//   }
+// }

@@ -1,14 +1,13 @@
 import { Engine } from "./engine";
-import { BalloonShoot } from "./games/balloonShoot";
-import { Tutorial } from "./games/tutorial";
+import { balloonShoot } from "./games/balloonShoot";
 
-const GAME_CATALOG = [BalloonShoot, Tutorial];
+const GAME_CATALOG = [balloonShoot];
 
 window.onload = async () => {
   const engine = new Engine();
 
   while (true) {
     // TODO: pick a game.
-    await engine.play(BalloonShoot);
+    await engine.play(balloonShoot);
   }
 };
