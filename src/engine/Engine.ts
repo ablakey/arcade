@@ -5,7 +5,7 @@ import { SpriteName, SpriteObject, SpriteState } from "./SpriteObject";
 
 import { sleep } from "./utils";
 
-const FPS = 60;
+const FPS = 30;
 const TITLE_BLINK_DELAY = 500;
 const TITLE_REVEAL_DELAY = 75;
 const SHOW_TITLE = false;
@@ -164,10 +164,9 @@ export class Engine {
     this.accumulatedTime += deltaTime;
     this.lastTime = currentTime;
 
-    this.currentGame?.tick(deltaTime);
-
     if (this.accumulatedTime > 1000 / FPS) {
       this.accumulatedTime -= 1000 / FPS;
+      this.currentGame?.tick(deltaTime);
       this.renderer.render(this.stage);
     }
 
