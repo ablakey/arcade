@@ -167,9 +167,9 @@ body * {
   border-radius: 0 6px 6px 0;
 }
 
-.space .front,
-.space .shadow,
-.space .edge {
+.action .front,
+.action .shadow,
+.action .edge {
   padding: 12px;
   border-radius: 6px;
 }

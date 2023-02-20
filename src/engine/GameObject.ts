@@ -39,8 +39,12 @@ export class GameObject<T extends Sprite | Graphics = Sprite | Graphics> {
     return obj as GameObject<Sprite> & A;
   }
 
-  static fromGraphics() {
+  static fromGraphics(position: [number, number], drawCallback: (graphics: Graphics) => void) {
     const obj = new GameObject<Graphics>();
+    obj.pixi = new Graphics();
+    obj.x = position[0];
+    obj.y = position[1];
+    drawCallback(obj.pixi);
     return obj;
   }
 }

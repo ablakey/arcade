@@ -11,10 +11,18 @@ const HOUSE_POSITIONS: [number, number][] = [
   [93, 112],
 ];
 
-const BALLOON_SPEED = 0.05;
+const BALLOON_SPEED = 0.02;
+const BALLOON_CRASHING_SPEED = 0.02;
+const GUN_COOLDOWN = 1000;
+
+type BalloonState = "RightUp" | "RightDown" | "Crashing" | "Crashed";
 
 export function balloonShoot(engine: Engine) {
-  const balloon = GameObject.fromSprite("balloon", [10, 10], { movingUp: true });
+  let gunCooldown = 0;
+
+  const balloon = GameObject.fromSprite("balloon", [10, 10], {
+    state: "RightDown" as BalloonState,
+  });
   engine.add(balloon);
 
   const houses = HOUSE_POSITIONS.map((p) => {
@@ -23,21 +31,47 @@ export function balloonShoot(engine: Engine) {
     return obj;
   });
 
+  function fireGun() {
+    const bullet = GameObject.fromGraphics([engine.width / 2, engine.height - 20], (g) => {
+      console.log(g);
+      g.beginFill(0xffffff).drawRect(0, 0, 3, 3);
+    });
+    engine.add(bullet);
+  }
+
   function tick(delta: number) {
-    console.log(delta);
-    if (balloon.movingUp) {
-      balloon.y -= BALLOON_SPEED * delta;
+    /**
+     * Handle input.
+     */
+    if (engine.input.Action && gunCooldown <= 0) {
+      fireGun();
+      gunCooldown = GUN_COOLDOWN;
     } else {
-      balloon.y += BALLOON_SPEED * delta;
+      gunCooldown -= delta;
     }
 
-    if (balloon.y <= 5) {
-      balloon.movingUp = false;
-    } else if (balloon.y >= 25) {
-      balloon.movingUp = true;
+    /**
+     * Balloon movement.
+     */
+    const speed = BALLOON_SPEED * delta;
+    switch (balloon.state) {
+      case "RightUp":
+      case "RightDown":
+        if (balloon.y <= 5) {
+          balloon.state = "RightDown";
+        } else if (balloon.y >= 25) {
+          balloon.state = "RightUp";
+        }
+        balloon.x += speed;
+        balloon.y += balloon.state === "RightUp" ? -speed : speed;
+        break;
+      case "Crashing":
+        balloon.y -= BALLOON_CRASHING_SPEED;
+        if (balloon.y === engine.height) {
+          balloon.state = "Crashed";
+        }
+        break;
     }
-
-    balloon.x += BALLOON_SPEED * delta;
   }
 
   return { title: "Balloon Shoot!", tick };

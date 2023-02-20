@@ -3,17 +3,19 @@ import { GameObject } from "./GameObject";
 
 import { sleep } from "./utils";
 
+const WIDTH = 160;
+const HEIGHT = 120;
 const FPS = 30; // Also the tickrate.
-const TITLE_BLINK_DELAY = 500;
-const TITLE_REVEAL_DELAY = 75;
-const SHOW_TITLE = false;
+const TITLE_BLINK_DELAY = 350;
+const TITLE_REVEAL_DELAY = 50;
+const SHOW_TITLE = true;
 
 const BUTTONS = [
   { name: "Up", codes: ["ArrowUp", "KeyW"] },
   { name: "Down", codes: ["ArrowDown", "KeyS"] },
   { name: "Left", codes: ["ArrowLeft", "KeyA"] },
   { name: "Right", codes: ["ArrowRight", "KeyD"] },
-  { name: "Space", codes: ["Space"] },
+  { name: "Action", codes: ["Space"] },
 ] as const;
 
 type ButtonName = (typeof BUTTONS)[number]["name"];
@@ -25,17 +27,23 @@ export class Engine {
   private accumulatedTime = 0;
   private currentGame: ReturnType<Game> | undefined;
   private isFinished: boolean;
-  private input: Record<ButtonName, boolean>;
+  public input: Record<ButtonName, boolean>;
+
+  public readonly width: number;
+  public readonly height: number;
 
   constructor() {
     // Required, otherwise all textures get linear interpolation and look fuzzy.
     BaseTexture.defaultOptions.scaleMode = SCALE_MODES.NEAREST;
 
+    this.width = WIDTH;
+    this.height = HEIGHT;
+
     this.renderer = new Renderer({
       antialias: false,
       view: document.querySelector("#viewport")! as HTMLCanvasElement,
-      width: 160,
-      height: 120,
+      width: WIDTH,
+      height: HEIGHT,
       backgroundColor: 0x000000,
     });
 
@@ -45,7 +53,6 @@ export class Engine {
     /**
      * Set up I/O.
      */
-
     BUTTONS.forEach(({ name }) => {
       const buttonName = name as ButtonName;
       const buttonEl = document.querySelector<HTMLButtonElement>(`#button${name}`)!;
@@ -62,8 +69,8 @@ export class Engine {
 
     (
       [
-        ["keydown", this.buttonDown],
-        ["keyup", this.buttonUp],
+        ["keydown", this.buttonDown.bind(this)],
+        ["keyup", this.buttonUp.bind(this)],
       ] as const
     ).forEach(([code, callback]) => {
       document.addEventListener(code, (e) => {
@@ -73,11 +80,6 @@ export class Engine {
         }
       });
     });
-
-    /**
-     * Begin engine loop.
-     */
-    requestAnimationFrame(this.tick.bind(this));
   }
 
   public add(gameObject: GameObject) {
@@ -117,6 +119,11 @@ export class Engine {
     }
 
     // Run.
+    this.lastTime = performance.now(); // Ignore accumulated time until now.
+    this.accumulatedTime = 0;
+    requestAnimationFrame(this.tick.bind(this));
+
+    // Wait until finished.
     while (true) {
       if (this.isFinished) {
         break;
@@ -133,10 +140,12 @@ export class Engine {
 
   private buttonDown(name: ButtonName, e: Event) {
     document.querySelector(`#button${name}`)!.classList.add("active");
+    this.input[name] = true;
     e.preventDefault();
   }
 
   private buttonUp(name: ButtonName) {
+    this.input[name] = false;
     document.querySelector(`#button${name}`)!.classList.remove("active");
   }
 
