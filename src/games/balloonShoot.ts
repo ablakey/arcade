@@ -1,4 +1,5 @@
-import { Engine } from "../engine";
+import { Engine } from "../engine/engine";
+import { GameObject } from "../engine/GameObject";
 
 const HOUSE_POSITIONS: [number, number][] = [
   [10, 112],
@@ -10,30 +11,24 @@ const HOUSE_POSITIONS: [number, number][] = [
   [93, 112],
 ];
 
-const BALLOON_SPEED = 5;
+const BALLOON_SPEED = 0.05;
 
 export function balloonShoot(engine: Engine) {
-  const balloon = engine.addSprite("balloon", [10, 10], { movingUp: true });
+  const balloon = GameObject.fromSprite("balloon", [10, 10], { movingUp: true });
+  engine.add(balloon);
 
   const houses = HOUSE_POSITIONS.map((p) => {
-    return engine.addSprite("houseSmall", p, { isHit: false });
+    const obj = GameObject.fromSprite("houseSmall", p, { isHit: false });
+    engine.add(obj);
+    return obj;
   });
 
-  // const line = engine.addGraphics([10, 10], {}, (g) => {
-  //   // draw polygon
-  //   const path = [60, 37, 70, 46, 78, 42, 73, 57, 59, 52];
-
-  //   g.lineStyle(0);
-  //   g.beginFill(0x3500fa, 1);
-  //   g.drawPolygon(path);
-  //   g.endFill();
-  // });
-
   function tick(delta: number) {
+    console.log(delta);
     if (balloon.movingUp) {
-      balloon.y -= BALLOON_SPEED / delta;
+      balloon.y -= BALLOON_SPEED * delta;
     } else {
-      balloon.y += BALLOON_SPEED / delta;
+      balloon.y += BALLOON_SPEED * delta;
     }
 
     if (balloon.y <= 5) {
@@ -42,7 +37,7 @@ export function balloonShoot(engine: Engine) {
       balloon.movingUp = true;
     }
 
-    balloon.x += BALLOON_SPEED / delta;
+    balloon.x += BALLOON_SPEED * delta;
   }
 
   return { title: "Balloon Shoot!", tick };

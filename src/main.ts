@@ -1,4 +1,4 @@
-import { Engine } from "./engine";
+import { Engine } from "./engine/Engine";
 import { balloonShoot } from "./games/balloonShoot";
 
 const GAME_CATALOG = [balloonShoot];

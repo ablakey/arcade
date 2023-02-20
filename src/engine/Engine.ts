@@ -1,11 +1,10 @@
-import { BaseTexture, Container, Graphics, Renderer, SCALE_MODES } from "pixi.js";
+import { BaseTexture, Container, Renderer, SCALE_MODES } from "pixi.js";
 import { Game } from "./Game";
-import { GraphicsObject, GraphicsState } from "./GraphicsObject";
-import { SpriteName, SpriteObject, SpriteState } from "./SpriteObject";
+import { GameObject } from "./GameObject";
 
 import { sleep } from "./utils";
 
-const FPS = 30;
+const FPS = 30; // Also the tickrate.
 const TITLE_BLINK_DELAY = 500;
 const TITLE_REVEAL_DELAY = 75;
 const SHOW_TITLE = false;
@@ -82,24 +81,8 @@ export class Engine {
     requestAnimationFrame(this.tick.bind(this));
   }
 
-  public addSprite<T extends SpriteState>(
-    name: SpriteName,
-    position: [number, number],
-    state: T
-  ): SpriteObject & T {
-    const s = SpriteObject.create(name, position, state);
-    this.stage.addChild(s);
-    return s;
-  }
-
-  public addGraphics<T extends GraphicsState>(
-    position: [number, number],
-    state: T,
-    drawFn: (g: Graphics) => void
-  ): GraphicsObject & T {
-    const g = GraphicsObject.create(position, state, drawFn);
-    this.stage.addChild(g);
-    return g;
+  public add(gameObject: GameObject) {
+    this.stage.addChild(gameObject.pixi);
   }
 
   public async showTitle(text: string) {
@@ -165,9 +148,9 @@ export class Engine {
     this.lastTime = currentTime;
 
     if (this.accumulatedTime > 1000 / FPS) {
-      this.accumulatedTime -= 1000 / FPS;
-      this.currentGame?.tick(deltaTime);
+      this.currentGame?.tick(this.accumulatedTime);
       this.renderer.render(this.stage);
+      this.accumulatedTime = 0;
     }
 
     requestAnimationFrame(this.tick.bind(this));
