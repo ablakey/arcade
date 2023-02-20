@@ -1,3 +1,4 @@
+import { Graphics } from "pixi.js";
 import { Engine } from "../engine/engine";
 import { GameObject } from "../engine/GameObject";
 
@@ -18,8 +19,19 @@ const GUN_COOLDOWN = 1000;
 type BalloonState = "RightUp" | "RightDown" | "Crashing" | "Crashed";
 
 export function balloonShoot(engine: Engine) {
+  /**
+   * Assets
+   */
+  const bulletSprite = engine.generateSprite((g) => g.beginFill(0xffffff).drawRect(0, 0, 3, 3));
+
+  /**
+   * State
+   */
   let gunCooldown = 0;
 
+  /**
+   * Entities
+   */
   const balloon = GameObject.fromSprite("balloon", [10, 10], {
     state: "RightDown" as BalloonState,
   });
@@ -32,10 +44,8 @@ export function balloonShoot(engine: Engine) {
   });
 
   function fireGun() {
-    const bullet = GameObject.fromGraphics([engine.width / 2, engine.height - 20], (g) => {
-      console.log(g);
-      g.beginFill(0xffffff).drawRect(0, 0, 3, 3);
-    });
+    const bullet = GameObject.fromSprite(bulletSprite, [50, 50]);
+    bullet.pixi.anchor.set(0.5);
     engine.add(bullet);
   }
 

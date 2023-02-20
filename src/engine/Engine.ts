@@ -1,4 +1,4 @@
-import { BaseTexture, Container, Renderer, SCALE_MODES } from "pixi.js";
+import { BaseTexture, Container, Graphics, Renderer, SCALE_MODES, Sprite, Texture } from "pixi.js";
 import { GameObject } from "./GameObject";
 
 import { sleep } from "./utils";
@@ -22,7 +22,7 @@ type ButtonName = (typeof BUTTONS)[number]["name"];
 
 export class Engine {
   public stage: Container;
-  private renderer: Renderer;
+  public renderer: Renderer;
   private lastTime = 0;
   private accumulatedTime = 0;
   private currentGame: ReturnType<Game> | undefined;
@@ -84,6 +84,12 @@ export class Engine {
 
   public add(gameObject: GameObject) {
     this.stage.addChild(gameObject.pixi);
+  }
+
+  public generateSprite(drawCallback: (graphics: Graphics) => void): Sprite {
+    const g = new Graphics();
+    drawCallback(g);
+    return Sprite.from(this.renderer.generateTexture(g));
   }
 
   public async showTitle(text: string) {

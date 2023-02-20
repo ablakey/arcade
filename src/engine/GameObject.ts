@@ -27,15 +27,15 @@ export class GameObject<T extends Sprite | Graphics = Sprite | Graphics> {
   }
 
   static fromSprite<A extends Record<string, any>>(
-    name: SpriteName,
+    sprite: SpriteName | Sprite,
     position: [number, number],
-    attrs: A
+    attrs?: A
   ) {
     const obj = new GameObject<Sprite>();
-    obj.pixi = Sprite.from(sprites[name]);
+    obj.pixi = typeof sprite === "string" ? Sprite.from(sprites[sprite]) : sprite;
     obj.x = position[0];
     obj.y = position[1];
-    Object.assign(obj, attrs);
+    Object.assign(obj, attrs ?? {});
     return obj as GameObject<Sprite> & A;
   }
 
