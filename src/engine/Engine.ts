@@ -1,5 +1,4 @@
 import { BaseTexture, Container, Renderer, SCALE_MODES } from "pixi.js";
-import { Game } from "./Game";
 import { GameObject } from "./GameObject";
 
 import { sleep } from "./utils";
@@ -156,3 +155,8 @@ export class Engine {
     requestAnimationFrame(this.tick.bind(this));
   }
 }
+
+export type Game = (engine: Engine) => {
+  tick: (delta: number) => void;
+  title: string;
+};
