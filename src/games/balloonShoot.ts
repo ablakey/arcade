@@ -15,28 +15,31 @@ const BALLOON_SPEED = 0.02;
 const BALLOON_CRASHING_SPEED = 0.02;
 const GUN_COOLDOWN = 1000;
 
-type BalloonState = "RightUp" | "RightDown" | "Crashing" | "Crashed";
+type Balloon = GameObject & { state: "RightUp" | "RightDown" | "Crashing" | "Crashed" };
+type House = GameObject & { isAlive: boolean };
+type Bullet = GameObject & { angle: number };
 
 export function balloonShoot(engine: Engine) {
-  const bulletSprite = engine.generateSprite((g) => g.beginFill(0xffffff).drawRect(0, 0, 3, 3));
+  const bulletSprite = engine.generateTexture((g) => g.beginFill(0xffffff).drawRect(0, 0, 1, 1));
 
   let gunCooldown = 0;
 
-  const balloon = GameObject.fromSprite("balloon", [10, 10], {
-    state: "RightDown" as BalloonState,
-  });
+  const balloon: Balloon = GameObject.fromTexture("balloon", [10, 10], { state: "RightUp" });
   engine.add(balloon);
 
-  const houses = HOUSE_POSITIONS.map((p) => {
-    const obj = GameObject.fromSprite("houseSmall", p, { isHit: false });
+  const bullets: Bullet[] = [];
+
+  const houses: House[] = HOUSE_POSITIONS.map((p) => {
+    const obj = GameObject.fromTexture("houseSmall", p, { isAlive: true });
     engine.add(obj);
     return obj;
   });
 
   function fireGun() {
-    const bullet = GameObject.fromSprite(bulletSprite, [50, 50]);
+    const bullet = GameObject.fromTexture(bulletSprite, [50, 50], { angle: Math.PI / 2 });
     bullet.pixi.anchor.set(0.5);
     engine.add(bullet);
+    bullets.push(bullet);
   }
 
   function tick(delta: number) {
@@ -49,6 +52,13 @@ export function balloonShoot(engine: Engine) {
     } else {
       gunCooldown -= delta;
     }
+
+    /**
+     * Bullets.
+     */
+    bullets.forEach((b) => {
+      b.move(b.angle, 1);
+    });
 
     /**
      * Balloon movement.
@@ -69,6 +79,7 @@ export function balloonShoot(engine: Engine) {
         balloon.y -= BALLOON_CRASHING_SPEED;
         if (balloon.y === engine.height) {
           balloon.state = "Crashed";
+          // TODO: change the texture.
         }
         break;
     }

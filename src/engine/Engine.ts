@@ -8,7 +8,7 @@ const HEIGHT = 120;
 const FPS = 30; // Also the tickrate.
 const TITLE_BLINK_DELAY = 350;
 const TITLE_REVEAL_DELAY = 50;
-const SHOW_TITLE = true;
+const SHOW_TITLE = false;
 
 const BUTTONS = [
   { name: "Up", codes: ["ArrowUp", "KeyW"] },
@@ -86,10 +86,10 @@ export class Engine {
     this.stage.addChild(gameObject.pixi);
   }
 
-  public generateSprite(drawCallback: (graphics: Graphics) => void): Sprite {
+  public generateTexture(drawCallback: (graphics: Graphics) => void) {
     const g = new Graphics();
     drawCallback(g);
-    return Sprite.from(this.renderer.generateTexture(g));
+    return this.renderer.generateTexture(g);
   }
 
   public async showTitle(text: string) {
