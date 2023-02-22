@@ -1,5 +1,5 @@
-import { BaseTexture, Container, Graphics, Renderer, SCALE_MODES, Sprite, Texture } from "pixi.js";
-import { GameObject } from "./GameObject";
+import { BaseTexture, Container, Graphics, Renderer, SCALE_MODES, Texture } from "pixi.js";
+import { GameObject, TextureName } from "./GameObject";
 
 import { sleep } from "./utils";
 
@@ -25,9 +25,10 @@ export class Engine {
   public renderer: Renderer;
   private lastTime = 0;
   private accumulatedTime = 0;
-  private currentGame: ReturnType<Game> | undefined;
+  private currentGame: Game | undefined;
   private isFinished: boolean;
   public input: Record<ButtonName, boolean>;
+  public tickLength: number;
 
   public readonly width: number;
   public readonly height: number;
@@ -38,7 +39,7 @@ export class Engine {
 
     this.width = WIDTH;
     this.height = HEIGHT;
-
+    this.tickLength = 1000 / FPS;
     this.renderer = new Renderer({
       antialias: false,
       view: document.querySelector("#viewport")! as HTMLCanvasElement,
@@ -62,10 +63,7 @@ export class Engine {
       ["mouseup", "mouseleave", "touchend"].forEach((c) => buttonEl.addEventListener(c, boundUp));
     });
 
-    this.input = Object.fromEntries(BUTTONS.map(({ name }) => [name, false])) as Record<
-      ButtonName,
-      boolean
-    >;
+    this.input = Object.fromEntries(BUTTONS.map(({ name }) => [name, false])) as Record<ButtonName, boolean>;
 
     (
       [
@@ -82,8 +80,10 @@ export class Engine {
     });
   }
 
-  public add(gameObject: GameObject) {
-    this.stage.addChild(gameObject.pixi);
+  public create<A extends Record<string, any>>(texture: Texture | TextureName, position: [number, number], attrs?: A) {
+    const obj = GameObject.create(texture, position, attrs);
+    this.stage.addChild(obj.sprite);
+    return obj;
   }
 
   public generateTexture(drawCallback: (graphics: Graphics) => void) {
@@ -117,12 +117,14 @@ export class Engine {
     titleEl.innerHTML = "";
   }
 
-  public async play(initGame: Game) {
+  public async play(GameClass: new (engine: Engine) => Game) {
     // Setup.
-    this.currentGame = initGame(this);
+    this.currentGame = new GameClass(this);
     if (SHOW_TITLE) {
       await this.showTitle(this.currentGame.title.toUpperCase());
     }
+
+    await this.currentGame.setup();
 
     // Run.
     this.lastTime = performance.now(); // Ignore accumulated time until now.
@@ -161,8 +163,8 @@ export class Engine {
     this.accumulatedTime += deltaTime;
     this.lastTime = currentTime;
 
-    if (this.accumulatedTime > 1000 / FPS) {
-      this.currentGame?.tick(this.accumulatedTime);
+    if (this.accumulatedTime > this.tickLength) {
+      this.currentGame?.tick();
       this.renderer.render(this.stage);
       this.accumulatedTime = 0;
     }
@@ -171,7 +173,13 @@ export class Engine {
   }
 }
 
-export type Game = (engine: Engine) => {
-  tick: (delta: number) => void;
-  title: string;
-};
+export abstract class Game {
+  abstract tick(): void;
+  abstract setup(): Promise<void> | void;
+  public title = "<NO NAME>";
+  protected engine: Engine;
+
+  constructor(engine: Engine) {
+    this.engine = engine;
+  }
+}

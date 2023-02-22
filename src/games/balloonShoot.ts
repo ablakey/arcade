@@ -1,4 +1,5 @@
-import { Engine } from "../engine/engine";
+import { Texture } from "pixi.js";
+import { Game } from "../engine/Engine";
 import { GameObject } from "../engine/GameObject";
 
 const HOUSE_POSITIONS: [number, number][] = [
@@ -11,59 +12,39 @@ const HOUSE_POSITIONS: [number, number][] = [
   [93, 112],
 ];
 
-const BALLOON_SPEED = 0.02;
+const BALLOON_SPEED = 1;
 const BALLOON_CRASHING_SPEED = 0.02;
 const GUN_COOLDOWN = 1000;
+const GUN_ROTATION_SPEED = 0.08;
 
-type Balloon = GameObject & { state: "RightUp" | "RightDown" | "Crashing" | "Crashed" };
-type House = GameObject & { isAlive: boolean };
-type Bullet = GameObject & { angle: number };
+export class BalloonShoot extends Game {
+  bulletTexture: Texture;
+  houses: (GameObject & { isAlive: boolean })[] = [];
+  bullets: (GameObject & { angle: number })[] = [];
+  balloon: GameObject & { state: "RightUp" | "RightDown" | "Crashing" | "Crashed" };
+  gun: GameObject;
+  cooldown = 0;
 
-export function balloonShoot(engine: Engine) {
-  const bulletSprite = engine.generateTexture((g) => g.beginFill(0xffffff).drawRect(0, 0, 1, 1));
+  setup() {
+    this.bulletTexture = this.engine.generateTexture((g) => g.beginFill(0xffffff).drawRect(0, 0, 1, 1));
+    this.balloon = this.engine.create("balloon", [40, 40], { state: "RightUp" });
+    this.houses = HOUSE_POSITIONS.map((p) => this.engine.create("houseSmall", p, { isAlive: true }));
 
-  let gunCooldown = 0;
-
-  const balloon: Balloon = GameObject.fromTexture("balloon", [10, 10], { state: "RightUp" });
-  engine.add(balloon);
-
-  const bullets: Bullet[] = [];
-
-  const houses: House[] = HOUSE_POSITIONS.map((p) => {
-    const obj = GameObject.fromTexture("houseSmall", p, { isAlive: true });
-    engine.add(obj);
-    return obj;
-  });
-
-  function fireGun() {
-    const bullet = GameObject.fromTexture(bulletSprite, [50, 50], { angle: Math.PI / 2 });
-    bullet.pixi.anchor.set(0.5);
-    engine.add(bullet);
-    bullets.push(bullet);
+    const gunTexture = this.engine.generateTexture((g) => g.beginFill(0xffffff).drawRect(0, 0, 6, 1));
+    this.gun = this.engine.create(gunTexture, [50, 50]);
+    this.gun.rotation = -(Math.PI / 2);
   }
 
-  function tick(delta: number) {
-    /**
-     * Handle input.
-     */
-    if (engine.input.Action && gunCooldown <= 0) {
-      fireGun();
-      gunCooldown = GUN_COOLDOWN;
-    } else {
-      gunCooldown -= delta;
-    }
+  tick(): void {
+    this.handleBalloon();
+    this.handleInput();
+    this.handleBullets();
+  }
 
-    /**
-     * Bullets.
-     */
-    bullets.forEach((b) => {
-      b.move(b.angle, 1);
-    });
+  handleBalloon() {
+    const speed = BALLOON_SPEED;
+    const balloon = this.balloon;
 
-    /**
-     * Balloon movement.
-     */
-    const speed = BALLOON_SPEED * delta;
     switch (balloon.state) {
       case "RightUp":
       case "RightDown":
@@ -77,7 +58,7 @@ export function balloonShoot(engine: Engine) {
         break;
       case "Crashing":
         balloon.y -= BALLOON_CRASHING_SPEED;
-        if (balloon.y === engine.height) {
+        if (balloon.y === this.engine.height) {
           balloon.state = "Crashed";
           // TODO: change the texture.
         }
@@ -85,5 +66,35 @@ export function balloonShoot(engine: Engine) {
     }
   }
 
-  return { title: "Balloon Shoot!", tick };
+  handleInput() {
+    if (this.engine.input.Right) {
+      this.gun.rotation = Math.min(this.gun.rotation + GUN_ROTATION_SPEED, 0);
+    } else if (this.engine.input.Left) {
+      this.gun.rotation = Math.max(this.gun.rotation - GUN_ROTATION_SPEED, -Math.PI);
+    }
+
+    if (this.engine.input.Action && this.cooldown <= 0) {
+      this.fireGun();
+      this.cooldown = GUN_COOLDOWN;
+    } else {
+      this.cooldown -= this.engine.tickLength;
+    }
+  }
+
+  handleBullets() {
+    this.bullets.forEach((b) => {
+      b.move(b.angle, 1);
+    });
+
+    // Cleanup old bullets.
+    // Move bullets.
+    // Check for collision
+  }
+
+  fireGun() {
+    const angle = this.gun.rotation;
+    const bullet = this.engine.create(this.bulletTexture, [50, 50], { angle });
+    bullet.sprite.anchor.set(0.5);
+    this.bullets.push(bullet);
+  }
 }

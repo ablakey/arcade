@@ -10,7 +10,7 @@
   "author": "Andrew Blakey",
   "license": "MIT",
   "prettier": {
-    "printWidth": 100
+    "printWidth": 120
   },
   "eslintConfig": {
     "parser": "@typescript-eslint/parser",
