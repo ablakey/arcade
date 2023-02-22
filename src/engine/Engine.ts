@@ -1,5 +1,6 @@
-import { BaseTexture, Container, Graphics, Renderer, SCALE_MODES, Texture } from "pixi.js";
-import { GameObject, TextureName } from "./GameObject";
+import { BaseTexture, Container, Graphics, Renderer, SCALE_MODES, Sprite, Texture } from "pixi.js";
+import { GameObject } from "./GameObject";
+import { TextureName, textures } from "./textures";
 
 import { sleep } from "./utils";
 
@@ -21,8 +22,9 @@ const BUTTONS = [
 type ButtonName = (typeof BUTTONS)[number]["name"];
 
 export class Engine {
-  public stage: Container;
+  public gameObjects: GameObject[];
   public renderer: Renderer;
+  private stage: Container;
   private lastTime = 0;
   private accumulatedTime = 0;
   private currentGame: Game | undefined;
@@ -80,10 +82,20 @@ export class Engine {
     });
   }
 
-  public create<A extends Record<string, any>>(texture: Texture | TextureName, position: [number, number], attrs?: A) {
-    const obj = GameObject.create(texture, position, attrs);
+  public create<A extends Record<string, any>>(
+    texture: Texture | TextureName,
+    position: [number, number],
+    attrs?: A
+  ): GameObject & A {
+    const tex = typeof texture === "string" ? Texture.from(textures[texture]) : texture;
+    const obj = new GameObject();
+    obj.sprite = new Sprite(tex);
+    obj.x = position[0];
+    obj.y = position[1];
+    Object.assign(obj, attrs ?? {});
+    this.gameObjects.push(obj);
     this.stage.addChild(obj.sprite);
-    return obj;
+    return obj as GameObject & A;
   }
 
   public generateTexture(drawCallback: (graphics: Graphics) => void) {

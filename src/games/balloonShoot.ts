@@ -95,6 +95,7 @@ export class BalloonShoot extends Game {
     const angle = this.gun.rotation;
     const bullet = this.engine.create(this.bulletTexture, [50, 50], { angle });
     bullet.sprite.anchor.set(0.5);
+    bullet.collider = { type: "PointCollider", radius: 1 };
     this.bullets.push(bullet);
   }
 }
