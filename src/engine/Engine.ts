@@ -22,7 +22,7 @@ const BUTTONS = [
 type ButtonName = (typeof BUTTONS)[number]["name"];
 
 export class Engine {
-  public gameObjects: GameObject[];
+  public gameObjects: GameObject[] = [];
   public renderer: Renderer;
   private stage: Container;
   private lastTime = 0;
@@ -129,9 +129,9 @@ export class Engine {
     titleEl.innerHTML = "";
   }
 
-  public async play(GameClass: new (engine: Engine) => Game) {
+  public async play(GameClass: new () => Game) {
     // Setup.
-    this.currentGame = new GameClass(this);
+    this.currentGame = new GameClass();
     if (SHOW_TITLE) {
       await this.showTitle(this.currentGame.title.toUpperCase());
     }
@@ -189,9 +189,4 @@ export abstract class Game {
   abstract tick(): void;
   abstract setup(): Promise<void> | void;
   public title = "<NO NAME>";
-  protected engine: Engine;
-
-  constructor(engine: Engine) {
-    this.engine = engine;
-  }
 }

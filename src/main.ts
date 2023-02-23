@@ -4,10 +4,22 @@ import { BalloonShoot } from "./games/BalloonShoot";
 const GAME_CATALOG = [BalloonShoot];
 
 window.onload = async () => {
-  const engine = new Engine();
+  window.engine = new Engine();
 
   while (true) {
     // TODO: pick a game.
-    await engine.play(BalloonShoot);
+    await window.engine.play(BalloonShoot);
   }
 };
+
+/**
+ * Yes, I'm making engine a global/window.  globalThis is a smarter idea for real projects, but I want to explore this.
+ * I'm confident that engine will be a singleton, and I want to keep code as minimal as possible.  Don't do this with
+ * code that matters.
+ */
+declare global {
+  const engine: Engine;
+  interface Window {
+    engine: Engine;
+  }
+}

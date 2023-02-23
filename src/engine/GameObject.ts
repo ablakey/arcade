@@ -1,4 +1,5 @@
 import { Sprite } from "pixi.js";
+import { getPosition } from "./utils";
 
 type BoxCollider = {
   type: "BoxCollider";
@@ -40,10 +41,13 @@ export class GameObject {
     this.sprite.rotation = rotation;
   }
 
+  get position(): [number, number] {
+    return [this.x, this.y];
+  }
+
   move(angle: number, distance: number) {
-    const x = Math.cos(angle) * distance;
-    const y = Math.sin(angle) * distance;
-    this.x += x;
-    this.y += y;
+    const [x, y] = getPosition(this.position, angle, distance);
+    this.x = x;
+    this.y = y;
   }
 }
