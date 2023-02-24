@@ -1,21 +1,11 @@
 import { Sprite } from "pixi.js";
-import { getPosition } from "./utils";
-
-type BoxCollider = {
-  type: "BoxCollider";
-  width: number;
-  height: number;
-};
-
-type PointCollider = {
-  type: "PointCollider";
-  radius: number;
-};
+import { Position } from "./Engine";
+import { getPosition, hasCollision } from "./utils";
 
 export class GameObject {
   id: number;
   sprite: Sprite;
-  collider?: BoxCollider | PointCollider;
+  collider: "None" | "Box" | "Circle" = "None";
 
   get x() {
     return this.sprite.x;
@@ -41,8 +31,29 @@ export class GameObject {
     this.sprite.rotation = rotation;
   }
 
-  get position(): [number, number] {
+  get radius() {
+    // Inscribed radius of a circle that fits inside the object.
+    return Math.min(this.width, this.height) / 2;
+  }
+
+  get position(): Position {
     return [this.x, this.y];
+  }
+
+  get height() {
+    return this.sprite.height;
+  }
+
+  get width() {
+    return this.sprite.width;
+  }
+
+  getCollisions(): GameObject[] {
+    if (this.collider === undefined) {
+      return [];
+    }
+
+    return engine.getCollidables().filter((c) => hasCollision(c, this));
   }
 
   move(angle: number, distance: number) {

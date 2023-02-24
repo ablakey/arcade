@@ -6,7 +6,7 @@ import { sleep } from "./utils";
 
 const WIDTH = 160;
 const HEIGHT = 120;
-const FPS = 30; // Also the tickrate.
+const FPS = 30;
 const TITLE_BLINK_DELAY = 350;
 const TITLE_REVEAL_DELAY = 50;
 const SHOW_TITLE = false;
@@ -19,19 +19,32 @@ const BUTTONS = [
   { name: "Action", codes: ["Space"] },
 ] as const;
 
+export type Collider =
+  | { type: "None" }
+  | {
+      type: "Box";
+    }
+  | {
+      type: "Circle";
+      radius: number;
+    };
+
+export type Position = [number, number];
+
 type ButtonName = (typeof BUTTONS)[number]["name"];
 
 export class Engine {
-  public gameObjects: GameObject[] = [];
-  public renderer: Renderer;
   private stage: Container;
   private lastTime = 0;
   private accumulatedTime = 0;
   private currentGame: Game | undefined;
   private isFinished: boolean;
+  private nextId = 0;
+
+  public gameObjects: Map<number, GameObject> = new Map();
+  public renderer: Renderer;
   public input: Record<ButtonName, boolean>;
   public tickLength: number;
-
   public readonly width: number;
   public readonly height: number;
 
@@ -84,7 +97,7 @@ export class Engine {
 
   public create<A extends Record<string, any>>(
     texture: Texture | TextureName,
-    position: [number, number],
+    position: Position,
     attrs?: A
   ): GameObject & A {
     const tex = typeof texture === "string" ? Texture.from(textures[texture]) : texture;
@@ -92,10 +105,24 @@ export class Engine {
     obj.sprite = new Sprite(tex);
     obj.x = position[0];
     obj.y = position[1];
+    obj.id = this.nextId++;
+    obj.sprite.anchor.set(0.5);
     Object.assign(obj, attrs ?? {});
-    this.gameObjects.push(obj);
-    this.stage.addChild(obj.sprite);
+
+    this.gameObjects.set(obj.id, obj);
+    this.stage.addChildAt(obj.sprite, obj.id);
+
     return obj as GameObject & A;
+  }
+
+  public destroy(objectId: number) {
+    this.stage.removeChildAt(objectId);
+  }
+
+  public getCollidables(): (GameObject & { collider: Collider })[] {
+    return Array.from(this.gameObjects.values()).filter((g) => g.collider !== undefined) as (GameObject & {
+      collider: Collider;
+    })[];
   }
 
   public generateTexture(drawCallback: (graphics: Graphics) => void) {

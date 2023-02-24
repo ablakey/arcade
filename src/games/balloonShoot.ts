@@ -1,9 +1,9 @@
 import { Texture } from "pixi.js";
-import { Game } from "../engine/Engine";
+import { Game, Position } from "../engine/Engine";
 import { GameObject } from "../engine/GameObject";
 import { getPosition } from "../engine/utils";
 
-const HOUSE_POSITIONS: [number, number][] = [
+const HOUSE_POSITIONS: Position[] = [
   [10, 112],
   [20, 112],
   [30, 112],
@@ -18,7 +18,7 @@ const BALLOON_SPEED = 1;
 const BALLOON_CRASHING_SPEED = 1;
 const GUN_COOLDOWN = 1000;
 const GUN_ROTATION_SPEED = 0.08;
-const BULLET_SPEED = 2;
+const BULLET_SPEED = 4;
 
 export class BalloonShoot extends Game {
   bulletTexture: Texture;
@@ -32,6 +32,7 @@ export class BalloonShoot extends Game {
     this.bulletTexture = engine.generateTexture((g) => g.beginFill(0xffffff).drawRect(0, 0, 1, 1));
 
     this.balloon = engine.create("balloon", [40, 40], { state: "RightUp" });
+    this.balloon.collider = "Box";
     this.houses = HOUSE_POSITIONS.map((p) => engine.create("houseSmall", p, { isAlive: true }));
 
     const gunBaseTexture = engine.generateTexture((g) => g.beginFill(0xffffff).drawCircle(0, 0, 7));
@@ -102,8 +103,7 @@ export class BalloonShoot extends Game {
     const angle = this.gun.rotation;
     const origin = getPosition(this.gun.position, this.gun.rotation, 7);
     const bullet = engine.create(this.bulletTexture, origin, { angle });
-    bullet.sprite.anchor.set(0.5);
-    bullet.collider = { type: "PointCollider", radius: 1 };
+    bullet.collider = "Circle";
     this.bullets.push(bullet);
   }
 }

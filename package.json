@@ -46,6 +46,7 @@
     "install": "^0.13.0",
     "lightningcss": "^1.18.0",
     "npm": "^9.4.2",
-    "pixi.js": "^7.1.2"
+    "pixi.js": "^7.1.2",
+    "ts-essentials": "^9.3.0"
   }
 }
