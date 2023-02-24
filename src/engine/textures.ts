@@ -1,8 +1,15 @@
-import balloon from "../assets/balloon.png";
-import house from "../assets/house.png";
-import houseSmall from "../assets/houseSmall.png";
-import balloonCrashing from "../assets/balloonCrashing.png";
+//
+// FILE IS AUTOMATICALLY GENERATED
+//
+// Use 'npm run buildTextures' to regenerate.
+//
 
-export const textures = { balloon, house, houseSmall, balloonCrashing };
+import balloon from "../assets/textures/balloon.png";
+import balloonCrashing from "../assets/textures/balloonCrashing.png";
+import bezel from "../assets/textures/bezel.png";
+import house from "../assets/textures/house.png";
+import houseSmall from "../assets/textures/houseSmall.png";
+
+export const textures = { balloon, balloonCrashing, bezel, house, houseSmall };
 
 export type TextureName = keyof typeof textures;
