@@ -3,16 +3,7 @@ import { Game, Position } from "../engine/Engine";
 import { GameObject } from "../engine/GameObject";
 import { getPosition } from "../engine/utils";
 
-const HOUSE_POSITIONS: Position[] = [
-  [10, 112],
-  [20, 112],
-  [30, 112],
-  [58, 112],
-  [68, 112],
-  [80, 112],
-  [93, 112],
-  [104, 112],
-];
+const HOUSE_POSITIONS = [10, 20, 30, 70, 80, 95, 104];
 
 const BALLOON_SPEED = 1;
 const BALLOON_CRASHING_SPEED = 1;
@@ -33,13 +24,14 @@ export class BalloonShoot extends Game {
 
     this.balloon = engine.create("balloon", [40, 40], { state: "RightUp" });
     this.balloon.collider = "Box";
-    this.houses = HOUSE_POSITIONS.map((p) => engine.create("houseSmall", p, { isAlive: true }));
+    this.houses = HOUSE_POSITIONS.map((p) => engine.create("houseSmall", [p, engine.height - 4], { isAlive: true }));
 
     const gunBaseTexture = engine.generateTexture((g) => g.beginFill(0xffffff).drawCircle(0, 0, 7));
-    engine.create(gunBaseTexture, [42, engine.height - 5]);
+    engine.create(gunBaseTexture, [45, engine.height - 2]);
 
     const gunTexture = engine.generateTexture((g) => g.beginFill(0xffffff).drawRect(0, 0, 8, 1));
-    this.gun = engine.create(gunTexture, [49, engine.height - 5]);
+    this.gun = engine.create(gunTexture, [45, engine.height - 8]);
+    this.gun.sprite.anchor.set(0);
     this.gun.rotation = -(Math.PI / 2);
   }
 
@@ -92,6 +84,9 @@ export class BalloonShoot extends Game {
   handleBullets() {
     this.bullets.forEach((b) => {
       b.move(b.angle, BULLET_SPEED);
+      if (b.getCollisions().length) {
+        console.log("COLLISION");
+      }
     });
 
     // Cleanup old bullets.

@@ -53,7 +53,7 @@ export class GameObject {
       return [];
     }
 
-    return engine.getCollidables().filter((c) => hasCollision(c, this));
+    return engine.getCollidables().filter((c) => c !== this && hasCollision(c, this));
   }
 
   move(angle: number, distance: number) {

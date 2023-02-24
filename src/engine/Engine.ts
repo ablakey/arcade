@@ -119,7 +119,7 @@ export class Engine {
     this.stage.removeChildAt(objectId);
   }
 
-  public getCollidables(): (GameObject & { collider: Collider })[] {
+  public getCollidables(): GameObject[] {
     return Array.from(this.gameObjects.values()).filter((g) => g.collider !== undefined) as (GameObject & {
       collider: Collider;
     })[];
