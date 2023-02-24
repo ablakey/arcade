@@ -1,36 +1,51 @@
 import { Texture } from "pixi.js";
-import { Game, Position } from "../engine/Engine";
+import { Game } from "../engine/Engine";
 import { GameObject } from "../engine/GameObject";
 import { getPosition } from "../engine/utils";
 
-const HOUSE_POSITIONS = [10, 20, 30, 70, 80, 95, 104];
-
-const BALLOON_SPEED = 1;
+const HOUSE_POSITIONS = [30, 40, 50, 60, 100, 110, 120, 130];
+const GUN_POSITION_X = 80;
+const BALLOON_SPEED = 0;
 const BALLOON_CRASHING_SPEED = 1;
 const GUN_COOLDOWN = 1000;
 const GUN_ROTATION_SPEED = 0.08;
 const BULLET_SPEED = 4;
 
+type House = GameObject & { isAlive: boolean; tag: "foo" };
+type Bullet = GameObject & { angle: number };
+type Balloon = GameObject & { state: "RightUp" | "RightDown" | "Crashing" | "Crashed" };
+
 export class BalloonShoot extends Game {
   bulletTexture: Texture;
-  houses: (GameObject & { isAlive: boolean })[] = [];
-  bullets: (GameObject & { angle: number })[] = [];
-  balloon: GameObject & { state: "RightUp" | "RightDown" | "Crashing" | "Crashed" };
+  balloon: GameObject & Balloon;
   gun: GameObject;
   cooldown = 0;
 
   setup() {
     this.bulletTexture = engine.generateTexture((g) => g.beginFill(0xffffff).drawRect(0, 0, 1, 1));
 
-    this.balloon = engine.create("balloon", [40, 40], { state: "RightUp" });
-    this.balloon.collider = "Box";
-    this.houses = HOUSE_POSITIONS.map((p) => engine.create("houseSmall", [p, engine.height - 4], { isAlive: true }));
+    this.balloon = engine.create<Balloon>({
+      texture: "balloon",
+      position: [40, 40],
+      attrs: { state: "RightUp" },
+      options: { tag: "balloon" },
+    });
+    this.balloon.collides = true;
+
+    HOUSE_POSITIONS.map((p) =>
+      engine.create<House>({
+        texture: "houseSmall",
+        position: [p, engine.height - 4],
+        attrs: { isAlive: true },
+        options: { tag: "house" },
+      })
+    );
 
     const gunBaseTexture = engine.generateTexture((g) => g.beginFill(0xffffff).drawCircle(0, 0, 7));
-    engine.create(gunBaseTexture, [45, engine.height - 2]);
+    engine.create({ texture: gunBaseTexture, position: [GUN_POSITION_X, engine.height] });
 
     const gunTexture = engine.generateTexture((g) => g.beginFill(0xffffff).drawRect(0, 0, 8, 1));
-    this.gun = engine.create(gunTexture, [45, engine.height - 8]);
+    this.gun = engine.create({ texture: gunTexture, position: [GUN_POSITION_X, engine.height - 7] });
     this.gun.sprite.anchor.set(0);
     this.gun.rotation = -(Math.PI / 2);
   }
@@ -57,7 +72,7 @@ export class BalloonShoot extends Game {
         balloon.y += balloon.state === "RightUp" ? -speed : speed;
         break;
       case "Crashing":
-        balloon.y -= BALLOON_CRASHING_SPEED;
+        balloon.y += BALLOON_CRASHING_SPEED;
         if (balloon.y === engine.height) {
           balloon.state = "Crashed";
           // TODO: change the texture.
@@ -82,11 +97,16 @@ export class BalloonShoot extends Game {
   }
 
   handleBullets() {
-    this.bullets.forEach((b) => {
+    engine.getObjects<Bullet>({ tag: "bullet" }).forEach((b) => {
       b.move(b.angle, BULLET_SPEED);
-      if (b.getCollisions().length) {
-        console.log("COLLISION");
-      }
+      b.getCollisions().forEach((c) => {
+        if (c.tag === "balloon") {
+          const balloon = c as Balloon;
+          engine.destroy(b);
+          balloon.state = "Crashing";
+          balloon.setTexture("balloonCrashing");
+        }
+      });
     });
 
     // Cleanup old bullets.
@@ -96,9 +116,12 @@ export class BalloonShoot extends Game {
 
   fireGun() {
     const angle = this.gun.rotation;
-    const origin = getPosition(this.gun.position, this.gun.rotation, 7);
-    const bullet = engine.create(this.bulletTexture, origin, { angle });
-    bullet.collider = "Circle";
-    this.bullets.push(bullet);
+    const position = getPosition(this.gun.position, this.gun.rotation, 7);
+    engine.create<Bullet>({
+      texture: this.bulletTexture,
+      position,
+      attrs: { angle },
+      options: { collides: true, tag: "bullet" },
+    });
   }
 }

@@ -1,11 +1,14 @@
-import { Sprite } from "pixi.js";
+import { Sprite, Texture } from "pixi.js";
 import { Position } from "./Engine";
-import { getPosition, hasCollision } from "./utils";
+import { TextureName, textures } from "./textures";
+import { getPosition } from "./utils";
 
 export class GameObject {
   id: number;
   sprite: Sprite;
-  collider: "None" | "Box" | "Circle" = "None";
+  collides = false;
+  tag?: string;
+  created: number;
 
   get x() {
     return this.sprite.x;
@@ -31,11 +34,6 @@ export class GameObject {
     this.sprite.rotation = rotation;
   }
 
-  get radius() {
-    // Inscribed radius of a circle that fits inside the object.
-    return Math.min(this.width, this.height) / 2;
-  }
-
   get position(): Position {
     return [this.x, this.y];
   }
@@ -48,12 +46,32 @@ export class GameObject {
     return this.sprite.width;
   }
 
+  setTexture(texture: Texture | TextureName) {
+    this.sprite.texture = typeof texture === "string" ? Texture.from(textures[texture]) : texture;
+  }
+
   getCollisions(): GameObject[] {
-    if (this.collider === undefined) {
+    if (!this.collides) {
       return [];
     }
 
-    return engine.getCollidables().filter((c) => c !== this && hasCollision(c, this));
+    return engine.getObjects({ collidable: true }).filter((b) => {
+      if (this === b) {
+        return false;
+      }
+
+      const aMinX = this.x - this.width / 2;
+      const aMaxX = this.x + this.width / 2;
+      const aMinY = this.y - this.height / 2;
+      const aMaxY = this.y + this.height / 2;
+
+      const bMinX = b.x - b.width / 2;
+      const bMaxX = b.x + b.width / 2;
+      const bMinY = b.y - b.height / 2;
+      const bMaxY = b.y + b.height / 2;
+
+      return aMinX <= bMaxX && aMaxX >= bMinX && aMinY <= bMaxY && aMaxY >= bMinY;
+    });
   }
 
   move(angle: number, distance: number) {

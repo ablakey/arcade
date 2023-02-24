@@ -1,4 +1,5 @@
 import { BaseTexture, Container, Graphics, Renderer, SCALE_MODES, Sprite, Texture } from "pixi.js";
+import { assert } from "ts-essentials";
 import { GameObject } from "./GameObject";
 import { TextureName, textures } from "./textures";
 
@@ -95,34 +96,51 @@ export class Engine {
     });
   }
 
-  public create<A extends Record<string, any>>(
-    texture: Texture | TextureName,
-    position: Position,
-    attrs?: A
-  ): GameObject & A {
+  public create<G extends Record<string, any> = Record<string, never>>(params: {
+    texture: Texture | TextureName;
+    position: Position;
+    attrs?: Omit<G, keyof GameObject | "tag">;
+    options?: { tag?: string; collides?: boolean };
+  }): GameObject & G {
+    const { texture, position, attrs, options } = params;
     const tex = typeof texture === "string" ? Texture.from(textures[texture]) : texture;
     const obj = new GameObject();
     obj.sprite = new Sprite(tex);
     obj.x = position[0];
     obj.y = position[1];
+    obj.created = performance.now();
     obj.id = this.nextId++;
     obj.sprite.anchor.set(0.5);
-    Object.assign(obj, attrs ?? {});
+    Object.assign(obj, attrs ?? {}, options ?? {});
 
     this.gameObjects.set(obj.id, obj);
-    this.stage.addChildAt(obj.sprite, obj.id);
+    this.stage.addChild(obj.sprite);
 
-    return obj as GameObject & A;
+    return obj as GameObject & G;
   }
 
-  public destroy(objectId: number) {
-    this.stage.removeChildAt(objectId);
+  public destroy(obj: number | GameObject) {
+    const object = typeof obj === "number" ? this.gameObjects.get(obj) : obj;
+    assert(object);
+    this.stage.removeChild(object.sprite);
+    this.gameObjects.delete(object.id);
   }
 
-  public getCollidables(): GameObject[] {
-    return Array.from(this.gameObjects.values()).filter((g) => g.collider !== undefined) as (GameObject & {
-      collider: Collider;
-    })[];
+  public getObjects<T extends Record<string, any> = Record<string, never>>(options?: {
+    collidable?: boolean;
+    tag?: string;
+  }): (T & GameObject)[] {
+    let objects = Array.from(this.gameObjects.values());
+
+    if (options?.collidable) {
+      objects = objects.filter((o) => o.collides);
+    }
+
+    if (options?.tag) {
+      objects = objects.filter((o) => o.tag === options.tag);
+    }
+
+    return objects as (T & GameObject)[];
   }
 
   public generateTexture(drawCallback: (graphics: Graphics) => void) {
