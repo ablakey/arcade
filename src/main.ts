@@ -1,6 +1,7 @@
 import { Engine } from "./engine/Engine";
-import { BalloonShoot } from "./games/BalloonShoot";
+import { BalloonShoot } from "./cartridges/BalloonShoot";
 
+// TODO: generate this too?
 const GAME_CATALOG = [BalloonShoot];
 
 window.onload = async () => {
