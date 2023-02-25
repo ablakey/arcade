@@ -1,7 +1,7 @@
 import { Texture } from "pixi.js";
 import { Game } from "../engine/Engine";
 import { GameObject } from "../engine/GameObject";
-import { getPosition, sleep } from "../engine/utils";
+import { getPosition } from "../engine/utils";
 
 const HOUSE_POSITIONS = [30, 40, 50, 60, 100, 110, 120, 130];
 const GUN_POSITION_X = 80;

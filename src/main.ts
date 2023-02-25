@@ -3,7 +3,7 @@ import { BalloonShoot } from "./cartridges/BalloonShoot";
 import { sleep } from "./engine/utils";
 
 // TODO: generate this too?
-const GAME_CATALOG = [BalloonShoot];
+// const GAME_CATALOG = [BalloonShoot];
 
 window.onload = async () => {
   window.engine = new Engine();
