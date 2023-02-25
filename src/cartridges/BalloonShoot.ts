@@ -61,7 +61,7 @@ export class BalloonShoot extends Game {
   }
 
   handleBalloon() {
-    let balloon: GameObject & Balloon;
+    let balloon: (GameObject & Balloon) | undefined;
 
     if (
       !engine.getObjects<Balloon>({ tag: "balloon", collidable: true }).length &&
@@ -75,7 +75,11 @@ export class BalloonShoot extends Game {
         collides: true,
       });
     } else {
-      balloon = engine.getObjects<Balloon>({ tag: "balloon" }).pop()!;
+      balloon = engine.getObjects<Balloon>({ tag: "balloon" }).pop() ?? undefined;
+    }
+
+    if (balloon === undefined) {
+      return;
     }
 
     if (

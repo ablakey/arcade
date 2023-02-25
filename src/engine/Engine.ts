@@ -173,17 +173,13 @@ export class Engine {
   public async play(GameClass: new () => Game) {
     // Setup.
     this.currentGame = new GameClass();
-    console.log("SHOW TITLE");
     if (SHOW_TITLE) {
       await this.showTitle(this.currentGame.title.toUpperCase());
     }
 
-    console.log("SETUP");
-
     await this.currentGame.setup();
     this.isRunning = true;
 
-    console.log("RUN");
     // Run.
     this.lastTime = performance.now(); // Ignore accumulated time until now.
     this.accumulatedTime = 0;
