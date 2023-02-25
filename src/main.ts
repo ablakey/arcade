@@ -1,5 +1,6 @@
 import { Engine } from "./engine/Engine";
 import { BalloonShoot } from "./cartridges/BalloonShoot";
+import { sleep } from "./engine/utils";
 
 // TODO: generate this too?
 const GAME_CATALOG = [BalloonShoot];
@@ -10,6 +11,7 @@ window.onload = async () => {
   while (true) {
     // TODO: pick a game.
     await window.engine.play(BalloonShoot);
+    await sleep(500);
   }
 };
 

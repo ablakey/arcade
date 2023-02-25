@@ -1,5 +1,5 @@
 //
-// FILE IS AUTOMATICALLY GENERATED
+// FILE IS AUTOMATICALLY GENERATED.
 //
 // Use 'npm run buildTextures' to regenerate.
 //
@@ -9,7 +9,8 @@ import balloonCrashing from "../assets/textures/balloonCrashing.png";
 import bezel from "../assets/textures/bezel.png";
 import house from "../assets/textures/house.png";
 import houseSmall from "../assets/textures/houseSmall.png";
+import houseSmallDestroyed from "../assets/textures/houseSmallDestroyed.png";
 
-export const textures = { balloon, balloonCrashing, bezel, house, houseSmall };
+export const textures = { balloon, balloonCrashing, bezel, house, houseSmall, houseSmallDestroyed };
 
 export type TextureName = keyof typeof textures;

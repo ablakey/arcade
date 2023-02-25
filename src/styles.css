@@ -50,6 +50,7 @@ body * {
 }
 
 #viewport {
+  background-color: #000;
   width: 100%;
   max-width: 600px;
   aspect-ratio: 4/3;

@@ -1,24 +1,10 @@
 import { BaseTexture, Container, Graphics, Renderer, SCALE_MODES, Sprite, Texture } from "pixi.js";
 import { assert } from "ts-essentials";
+import { BUTTONS, FPS, HEIGHT, SHOW_TITLE, TITLE_BLINK_DELAY, TITLE_REVEAL_DELAY, WIDTH } from "../config";
 import { GameObject } from "./GameObject";
 import { TextureName, textures } from "./textures";
 
 import { sleep } from "./utils";
-
-const WIDTH = 160;
-const HEIGHT = 120;
-const FPS = 30;
-const TITLE_BLINK_DELAY = 350;
-const TITLE_REVEAL_DELAY = 50;
-const SHOW_TITLE = false;
-
-const BUTTONS = [
-  { name: "Up", codes: ["ArrowUp", "KeyW"] },
-  { name: "Down", codes: ["ArrowDown", "KeyS"] },
-  { name: "Left", codes: ["ArrowLeft", "KeyA"] },
-  { name: "Right", codes: ["ArrowRight", "KeyD"] },
-  { name: "Action", codes: ["Space"] },
-] as const;
 
 export type Collider =
   | { type: "None" }
@@ -39,8 +25,8 @@ export class Engine {
   private lastTime = 0;
   private accumulatedTime = 0;
   private currentGame: Game | undefined;
-  private isFinished: boolean;
   private nextId = 0;
+  private isRunning = false;
 
   public gameObjects: Map<number, GameObject> = new Map();
   public renderer: Renderer;
@@ -65,7 +51,6 @@ export class Engine {
     });
 
     this.stage = new Container();
-    this.isFinished = false;
 
     /**
      * Set up I/O.
@@ -96,22 +81,29 @@ export class Engine {
     });
   }
 
+  get now() {
+    return performance.now();
+  }
+
   public create<G extends Record<string, any> = Record<string, never>>(params: {
     texture: Texture | TextureName;
     position: Position;
     attrs?: Omit<G, keyof GameObject | "tag">;
-    options?: { tag?: string; collides?: boolean };
+    tag?: string;
+    collides?: boolean;
   }): GameObject & G {
-    const { texture, position, attrs, options } = params;
+    const { texture, position, attrs } = params;
     const tex = typeof texture === "string" ? Texture.from(textures[texture]) : texture;
     const obj = new GameObject();
     obj.sprite = new Sprite(tex);
     obj.x = position[0];
     obj.y = position[1];
-    obj.created = performance.now();
     obj.id = this.nextId++;
     obj.sprite.anchor.set(0.5);
-    Object.assign(obj, attrs ?? {}, options ?? {});
+    obj.tag = params.tag;
+    obj.collides = params.collides ?? false;
+    obj.created = performance.now();
+    Object.assign(obj, attrs ?? {});
 
     this.gameObjects.set(obj.id, obj);
     this.stage.addChild(obj.sprite);
@@ -128,7 +120,7 @@ export class Engine {
 
   public getObjects<T extends Record<string, any> = Record<string, never>>(options?: {
     collidable?: boolean;
-    tag?: string;
+    tag?: T["tag"];
   }): (T & GameObject)[] {
     let objects = Array.from(this.gameObjects.values());
 
@@ -147,6 +139,10 @@ export class Engine {
     const g = new Graphics();
     drawCallback(g);
     return this.renderer.generateTexture(g);
+  }
+
+  public finishGame() {
+    this.isRunning = false;
   }
 
   public async showTitle(text: string) {
@@ -177,12 +173,17 @@ export class Engine {
   public async play(GameClass: new () => Game) {
     // Setup.
     this.currentGame = new GameClass();
+    console.log("SHOW TITLE");
     if (SHOW_TITLE) {
       await this.showTitle(this.currentGame.title.toUpperCase());
     }
 
-    await this.currentGame.setup();
+    console.log("SETUP");
 
+    await this.currentGame.setup();
+    this.isRunning = true;
+
+    console.log("RUN");
     // Run.
     this.lastTime = performance.now(); // Ignore accumulated time until now.
     this.accumulatedTime = 0;
@@ -190,17 +191,19 @@ export class Engine {
 
     // Wait until finished.
     while (true) {
-      if (this.isFinished) {
+      if (!this.isRunning) {
         break;
       }
-
       await sleep(500);
     }
 
+    // Post-game report.
+    // TODO
+
     // Cleanup.
-    // this.currentGame?.end();
     this.currentGame = undefined;
     this.stage.removeChildren();
+    this.gameObjects.clear();
   }
 
   private buttonDown(name: ButtonName, e: Event) {
@@ -220,11 +223,12 @@ export class Engine {
     this.accumulatedTime += deltaTime;
     this.lastTime = currentTime;
 
-    if (this.accumulatedTime > this.tickLength) {
+    if (this.accumulatedTime > this.tickLength && this.isRunning) {
       this.currentGame?.tick();
-      this.renderer.render(this.stage);
       this.accumulatedTime = 0;
     }
+
+    this.renderer.render(this.stage);
 
     requestAnimationFrame(this.tick.bind(this));
   }
@@ -233,5 +237,5 @@ export class Engine {
 export abstract class Game {
   abstract tick(): void;
   abstract setup(): Promise<void> | void;
-  public title = "<NO NAME>";
+  public title = "UNNAMED GAME";
 }

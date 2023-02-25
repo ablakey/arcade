@@ -16,7 +16,8 @@ async function main() {
   const contents = `${preamble}\n\n${importLines.join("\n")}\n\n${exportLine}\n\n${exportTypeLine}\n`;
 
   fs.writeFile("./src/engine/textures.ts", contents);
-  console.log(files);
+
+  console.log(`built ${files.length} textures.`);
 }
 
 main();
