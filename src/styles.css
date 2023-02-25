@@ -37,7 +37,7 @@ body * {
   position: relative;
 }
 
-#container div {
+#overlay {
   position: absolute;
   left: 0;
   right: 0;
@@ -46,9 +46,21 @@ body * {
   display: flex;
   justify-content: center;
   align-items: center;
+  color: white;
+  font-size: 1em;
+  text-align: center;
+  white-space: pre;
 }
 
-#overlay {
+#gametext {
+  position: absolute;
+  left: 4;
+  right: 4;
+  top: 4;
+  bottom: 4;
+  display: flex;
+  justify-content: end;
+  align-items: start;
   color: white;
   font-size: 1em;
   text-align: center;

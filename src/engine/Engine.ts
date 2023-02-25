@@ -145,6 +145,10 @@ export class Engine {
     this.isRunning = false;
   }
 
+  public setText(text: string) {
+    document.querySelector<HTMLDivElement>("#gametext")!.innerHTML = text;
+  }
+
   public async showTitle(text: string) {
     const titleEl = document.querySelector<HTMLDivElement>("#overlay")!;
     titleEl.style.fontSize = `${titleEl.offsetWidth / 20}pt`;
@@ -200,6 +204,7 @@ export class Engine {
     this.currentGame = undefined;
     this.stage.removeChildren();
     this.gameObjects.clear();
+    this.setText("");
   }
 
   private buttonDown(name: ButtonName, e: Event) {

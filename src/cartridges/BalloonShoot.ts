@@ -18,12 +18,19 @@ type House = GameObject & { isAlive: boolean; tag: "house" };
 type Bullet = GameObject & { angle: number };
 type Balloon = GameObject & { state: "RightUp" | "RightDown" | "Crashing" | "Crashed" };
 
+/**
+ * Balloon Shoot is my first game, written in February, 2023. It's probably a huge mess as I was figuring out the engine
+ * while I made the game. I also didn't know what the game was going to be as I wrote it.  This makes for a decent
+ * reference game, but if you're confused by why I wrote something the way I did, it might simply because I wrote it
+ * poorly.
+ */
 export class BalloonShoot extends Game {
   title = "Balloon Shoot!";
   bulletTexture: Texture;
   gun: GameObject;
   cooldown = 0;
   balloonCount = 0;
+  score = 0;
 
   setup() {
     this.bulletTexture = engine.generateTexture((g) => g.beginFill(0xffffff).drawRect(0, 0, 1, 1));
@@ -45,6 +52,8 @@ export class BalloonShoot extends Game {
     this.gun = engine.create({ texture: gunTexture, position: [GUN_POSITION_X, engine.height - 7] });
     this.gun.sprite.anchor.set(0);
     this.gun.rotation = -(Math.PI / 2);
+
+    this.addScore(0);
   }
 
   tick() {
@@ -58,6 +67,11 @@ export class BalloonShoot extends Game {
         engine.finishGame();
       }, 1_500);
     }
+  }
+
+  addScore(score: number) {
+    this.score += score;
+    engine.setText(`SCORE: ${this.score}`);
   }
 
   handleBalloon() {
@@ -135,6 +149,7 @@ export class BalloonShoot extends Game {
         if (t.tag === "balloon" && h.isAlive) {
           h.isAlive = false;
           h.setTexture("houseSmallDestroyed");
+          this.addScore(-1);
         }
       });
     });
@@ -154,6 +169,7 @@ export class BalloonShoot extends Game {
           engine.destroy(b);
           balloon.state = "Crashing";
           balloon.setTexture("balloonCrashing");
+          this.addScore(1);
         }
       });
     });
