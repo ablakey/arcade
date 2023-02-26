@@ -7,19 +7,16 @@ import { sleep } from "./utils";
 import { TextureName, textures } from "../assets/textures";
 import { SoundName, sounds } from "../assets/sounds";
 
-export type Collider =
-  | { type: "None" }
-  | {
-      type: "Box";
-    }
-  | {
-      type: "Circle";
-      radius: number;
-    };
-
 export type Position = [number, number];
 
-type ButtonName = (typeof BUTTONS)[number]["name"];
+export interface Game {
+  preload?(): Promise<void>;
+  tick(): void;
+  setup(): Promise<void> | void;
+  title: string;
+}
+
+export type ButtonName = (typeof BUTTONS)[number]["name"];
 
 export class Engine {
   private stage: Container;
@@ -54,9 +51,6 @@ export class Engine {
 
     this.stage = new Container();
 
-    /**
-     * Set up I/O.
-     */
     BUTTONS.forEach(({ name }) => {
       const buttonName = name as ButtonName;
       const buttonEl = document.querySelector<HTMLButtonElement>(`#button${name}`)!;
@@ -104,7 +98,7 @@ export class Engine {
     tag?: string;
     collides?: boolean;
   }): GameObject & G {
-    const { texture, position, attrs } = params;
+    const { texture, position, attrs, tag, collides } = params;
     const tex = typeof texture === "string" ? Texture.from(textures[texture]) : texture;
     const obj = new GameObject();
     obj.sprite = new Sprite(tex);
@@ -112,8 +106,8 @@ export class Engine {
     obj.y = position[1];
     obj.id = this.nextId++;
     obj.sprite.anchor.set(0.5);
-    obj.tag = params.tag;
-    obj.collides = params.collides ?? false;
+    obj.tag = tag;
+    obj.collides = collides ?? false;
     obj.created = performance.now();
     Object.assign(obj, attrs ?? {});
 
@@ -244,11 +238,4 @@ export class Engine {
 
     requestAnimationFrame(this.tick.bind(this));
   }
-}
-
-export interface Game {
-  preload?(): Promise<void>;
-  tick(): void;
-  setup(): Promise<void> | void;
-  title: string;
 }
