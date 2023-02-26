@@ -1,4 +1,4 @@
-import { BaseTexture, Container, Graphics, Renderer, SCALE_MODES, Sprite, Texture } from "pixi.js";
+import { Assets, BaseTexture, Container, Graphics, Renderer, SCALE_MODES, Sprite, Texture } from "pixi.js";
 import { assert } from "ts-essentials";
 import { BUTTONS, FPS, HEIGHT, SHOW_TITLE, TITLE_BLINK_DELAY, TITLE_REVEAL_DELAY, WIDTH } from "../config";
 import { GameObject } from "./GameObject";
@@ -83,6 +83,10 @@ export class Engine {
 
   get now() {
     return performance.now();
+  }
+
+  public precache(assets: TextureName[]) {
+    return Promise.all(assets.map((a) => Assets.load(textures[a])));
   }
 
   public create<G extends Record<string, any> = Record<string, never>>(params: {
@@ -236,6 +240,7 @@ export class Engine {
 }
 
 export abstract class Game {
+  precache: TextureName[];
   abstract tick(): void;
   abstract setup(): Promise<void> | void;
   public title = "UNNAMED GAME";

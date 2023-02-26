@@ -11,7 +11,7 @@ const GUN_COOLDOWN = 500;
 const GUN_ROTATION_SPEED = 0.08;
 const BULLET_SPEED = 4;
 const BULLET_LIFESPAN = 2_000;
-const BALLOON_LIFESPAN = 9_000;
+const BALLOON_LIFESPAN = 8_000;
 const TOTAL_BALLOONS = 3;
 
 type House = GameObject & { isAlive: boolean; tag: "house" };
@@ -26,15 +26,26 @@ type Balloon = GameObject & { state: "RightUp" | "RightDown" | "Crashing" | "Cra
  */
 export class BalloonShoot extends Game {
   title = "Balloon Shoot!";
+
+  // Game state.
   bulletTexture: Texture;
   gun: GameObject;
   cooldown = 0;
   balloonCount = 0;
   score = 0;
 
-  setup() {
+  async setup() {
+    /**
+     * Prepare assets.
+     */
+    await engine.precache(["balloon", "balloonCrashing", "houseSmall", "houseSmallDestroyed"]);
     this.bulletTexture = engine.generateTexture((g) => g.beginFill(0xffffff).drawRect(0, 0, 1, 1));
+    const gunTexture = engine.generateTexture((g) => g.beginFill(0xffffff).drawRect(0, 0, 8, 1));
+    const gunBaseTexture = engine.generateTexture((g) => g.beginFill(0xffffff).drawCircle(0, 0, 7));
 
+    /**
+     * Prepare stage.
+     */
     HOUSE_POSITIONS.map((p) =>
       engine.create<House>({
         texture: "houseSmall",
@@ -45,17 +56,19 @@ export class BalloonShoot extends Game {
       })
     );
 
-    const gunBaseTexture = engine.generateTexture((g) => g.beginFill(0xffffff).drawCircle(0, 0, 7));
-    engine.create({ texture: gunBaseTexture, position: [GUN_POSITION_X, engine.height] });
-
-    const gunTexture = engine.generateTexture((g) => g.beginFill(0xffffff).drawRect(0, 0, 8, 1));
+    // The gun lives forever so let's keep a reference to it rather than looking it up each time.
     this.gun = engine.create({ texture: gunTexture, position: [GUN_POSITION_X, engine.height - 7] });
     this.gun.sprite.anchor.set(0);
     this.gun.rotation = -(Math.PI / 2);
-
+    engine.create({ texture: gunBaseTexture, position: [GUN_POSITION_X, engine.height] });
     this.addScore(0);
   }
 
+  /**
+   * Called once for each frame. We could place all our logic here, but I broke it out into functions to simplify
+   * debugging and viewing the code. This is only called once setup has returned and stops when `engine.finishGame` is
+   * called.
+   */
   tick() {
     this.handleBalloon();
     this.handleInput();
@@ -74,9 +87,14 @@ export class BalloonShoot extends Game {
     engine.setText(`SCORE: ${this.score}`);
   }
 
+  /**
+   * An ugly "state machine" for handling the balloon's movement.  This only really works with very small games. This
+   * game is tiny and the state machine already felt a bit clumsy. Use Behaviour Trees or FSMs for larger games!
+   */
   handleBalloon() {
     let balloon: (GameObject & Balloon) | undefined;
 
+    // Only returns a living balloon: it's collidable. Note how unreliable this could be.
     if (
       !engine.getObjects<Balloon>({ tag: "balloon", collidable: true }).length &&
       this.balloonCount < TOTAL_BALLOONS
@@ -89,6 +107,7 @@ export class BalloonShoot extends Game {
         collides: true,
       });
     } else {
+      // Getting the last balloon gives us the only living balloon. Note how buggy this could be.
       balloon = engine.getObjects<Balloon>({ tag: "balloon" }).pop() ?? undefined;
     }
 
@@ -128,6 +147,10 @@ export class BalloonShoot extends Game {
     }
   }
 
+  /**
+   * Inputs are handled by reading the current state of a button (like how a GameBoy works!) There are no events /
+   * interrupts.
+   */
   handleInput() {
     if (engine.input.Right) {
       this.gun.rotation = Math.min(this.gun.rotation + GUN_ROTATION_SPEED, 0);
