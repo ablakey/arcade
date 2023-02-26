@@ -180,7 +180,7 @@ export class Engine {
   }
 
   public playSound(name: SoundName) {
-    const sound = new Howl({ src: sounds[name] });
+    const sound = new Howl({ src: sounds[name], volume: 0.5 });
     sound.play();
   }
 
