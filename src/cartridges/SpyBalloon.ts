@@ -5,14 +5,14 @@ import { getPosition } from "../engine/utils";
 
 const HOUSE_POSITIONS = [30, 40, 50, 60, 100, 110, 120, 130];
 const GUN_POSITION_X = 80;
-const BALLOON_SPEED = 1.2;
-const BALLOON_CRASHING_SPEED = 1.8;
+const BALLOON_SPEED = 1.4;
+const BALLOON_CRASHING_SPEED = 2.3;
 const GUN_COOLDOWN = 500;
 const GUN_ROTATION_SPEED = 0.08;
 const BULLET_SPEED = 4;
 const BULLET_LIFESPAN = 2_000;
-const BALLOON_LIFESPAN = 8_000;
-const TOTAL_BALLOONS = 3;
+const BALLOON_LIFESPAN = 7_000;
+const TOTAL_BALLOONS = 5;
 
 type House = GameObject & { isAlive: boolean; tag: "house" };
 type Bullet = GameObject & { angle: number };
@@ -24,8 +24,8 @@ type Balloon = GameObject & { state: "RightUp" | "RightDown" | "Crashing" | "Cra
  * reference game, but if you're confused by why I wrote something the way I did, it might simply because I wrote it
  * poorly.
  */
-export class BalloonShoot implements Game {
-  title = "Balloon Shoot!";
+export class SpyBalloon implements Game {
+  title = "Spy Balloon!";
 
   // Game state.
   bulletTexture: Texture;
@@ -67,7 +67,7 @@ export class BalloonShoot implements Game {
     this.gun.sprite.anchor.set(0);
     this.gun.rotation = -(Math.PI / 2);
     engine.create({ texture: gunBaseTexture, position: [GUN_POSITION_X, engine.height] });
-    this.addScore(0);
+    engine.addScore(0);
   }
 
   /**
@@ -86,11 +86,6 @@ export class BalloonShoot implements Game {
         engine.finishGame();
       }, 1_500);
     }
-  }
-
-  addScore(score: number) {
-    this.score += score;
-    engine.setText(`SCORE: ${this.score}`);
   }
 
   /**
@@ -180,7 +175,7 @@ export class BalloonShoot implements Game {
           h.isAlive = false;
           h.setTexture("houseSmallDestroyed");
           engine.playSound("crunch");
-          this.addScore(-1);
+          engine.addScore(-1);
         }
       });
     });
@@ -201,7 +196,7 @@ export class BalloonShoot implements Game {
           balloon.state = "Crashing";
           balloon.setTexture("balloonCrashing");
           engine.playSound("explosion");
-          this.addScore(1);
+          engine.addScore(1);
         }
       });
     });

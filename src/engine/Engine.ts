@@ -29,6 +29,7 @@ export class Engine {
   private nextId = 0;
   private isRunning = false;
 
+  public score = 0;
   public gameObjects: Map<number, GameObject> = new Map();
   public renderer: Renderer;
   public input: Record<ButtonName, boolean>;
@@ -84,6 +85,11 @@ export class Engine {
 
   get now() {
     return performance.now();
+  }
+
+  public addScore(score: number) {
+    this.score += score;
+    engine.setText(`SCORE: ${this.score}`);
   }
 
   public precache(options: { sounds?: SoundName[]; textures?: TextureName[] }) {
@@ -157,7 +163,12 @@ export class Engine {
 
   public async showTitle(text: string) {
     const titleEl = document.querySelector<HTMLDivElement>("#overlay")!;
-    titleEl.style.fontSize = `${titleEl.offsetWidth / 20}pt`;
+    titleEl.style.fontSize = `${titleEl.offsetWidth / 35}pt`;
+
+    // Clear immediately.
+    if (!text.length) {
+      titleEl.innerHTML = "";
+    }
 
     // Reveal characters.
     for (let x = 0; x < text.length; x++) {
@@ -166,18 +177,6 @@ export class Engine {
     }
 
     await sleep(TITLE_BLINK_DELAY - TITLE_REVEAL_DELAY);
-
-    // Blink title.
-    for (let x = 0; x < 3; x++) {
-      titleEl.innerHTML = "".padEnd(text.length, " ");
-      await sleep(TITLE_BLINK_DELAY);
-      titleEl.innerHTML = text;
-      await sleep(TITLE_BLINK_DELAY);
-    }
-
-    await sleep(TITLE_BLINK_DELAY);
-
-    titleEl.innerHTML = "";
   }
 
   public playSound(name: SoundName) {
@@ -190,6 +189,8 @@ export class Engine {
     this.currentGame = new GameClass();
 
     await Promise.all([this.showTitle(this.currentGame.title.toUpperCase()), this.currentGame.preload?.()]);
+    await sleep(1300);
+    await this.showTitle("");
 
     await this.currentGame.setup();
     this.isRunning = true;
