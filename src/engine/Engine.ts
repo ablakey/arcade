@@ -2,9 +2,9 @@ import { Assets, BaseTexture, Container, Graphics, Renderer, SCALE_MODES, Sprite
 import { assert } from "ts-essentials";
 import { BUTTONS, FPS, HEIGHT, TITLE_BLINK_DELAY, TITLE_REVEAL_DELAY, WIDTH } from "../config";
 import { GameObject } from "./GameObject";
-import { TextureName, textures } from "./textures";
-
+import { Howler, Howl } from "howler";
 import { sleep } from "./utils";
+import { TextureName, textures } from "../assets/textures";
 
 export type Collider =
   | { type: "None" }
@@ -51,6 +51,8 @@ export class Engine {
     });
 
     this.stage = new Container();
+
+    Howler.volume(0.5);
 
     /**
      * Set up I/O.
@@ -177,6 +179,8 @@ export class Engine {
 
     titleEl.innerHTML = "";
   }
+
+  public playSound(sound: SoundName) {}
 
   public async play(GameClass: new () => Game) {
     // Setup. Run `preload` while the title is showing. This may be game assets to download.

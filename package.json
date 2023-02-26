@@ -4,7 +4,7 @@
   "description": "",
   "scripts": {
     "start": "parcel ./src/index.html",
-    "buildTextures": "ts-node ./scripts/buildTextures.ts",
+    "buildAssets": "ts-node ./scripts/buildAssets.ts",
     "build": "npm run check && parcel build ./src/index.html --public-url ./ --no-source-maps",
     "check": "tsc --noEmit && eslint src --ext .ts,.tsx --max-warnings=0"
   },
@@ -33,6 +33,7 @@
     }
   },
   "devDependencies": {
+    "@types/howler": "^2.2.7",
     "@typescript-eslint/eslint-plugin": "^5.50.0",
     "@typescript-eslint/parser": "^5.50.0",
     "eslint": "^8.33.0",
@@ -45,6 +46,7 @@
     "typescript": "^4.9.5"
   },
   "dependencies": {
+    "howler": "^2.2.3",
     "install": "^0.13.0",
     "lightningcss": "^1.18.0",
     "npm": "^9.4.2",
