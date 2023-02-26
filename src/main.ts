@@ -9,8 +9,16 @@ window.onload = async () => {
   window.engine = new Engine();
 
   while (true) {
+    if (engine.input.Action) {
+      break;
+    }
+    await sleep(10);
+  }
+
+  while (true) {
     // TODO: pick a game.
-    await window.engine.play(BalloonShoot);
+
+    await window.engine.runCartridge(BalloonShoot);
     await sleep(500);
   }
 };

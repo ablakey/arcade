@@ -1,6 +1,6 @@
 import { Sprite, Texture } from "pixi.js";
+import { TextureName, textures } from "../assets/textures";
 import { Position } from "./Engine";
-import { TextureName, textures } from "./textures";
 import { getPosition } from "./utils";
 
 export class GameObject {

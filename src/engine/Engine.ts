@@ -2,9 +2,10 @@ import { Assets, BaseTexture, Container, Graphics, Renderer, SCALE_MODES, Sprite
 import { assert } from "ts-essentials";
 import { BUTTONS, FPS, HEIGHT, TITLE_BLINK_DELAY, TITLE_REVEAL_DELAY, WIDTH } from "../config";
 import { GameObject } from "./GameObject";
-import { Howler, Howl } from "howler";
+import { Howl } from "howler";
 import { sleep } from "./utils";
 import { TextureName, textures } from "../assets/textures";
+import { SoundName, sounds } from "../assets/sounds";
 
 export type Collider =
   | { type: "None" }
@@ -52,8 +53,6 @@ export class Engine {
 
     this.stage = new Container();
 
-    Howler.volume(0.5);
-
     /**
      * Set up I/O.
      */
@@ -87,8 +86,9 @@ export class Engine {
     return performance.now();
   }
 
-  public precache(assets: TextureName[]) {
-    return Promise.all(assets.map((a) => Assets.load(textures[a])));
+  public precache(options: { sounds?: SoundName[]; textures?: TextureName[] }) {
+    options.sounds?.forEach((s) => new Howl({ src: sounds[s], preload: true }));
+    return Promise.all(options.textures?.map((a) => Assets.load(textures[a])) ?? []);
   }
 
   public create<G extends Record<string, any> = Record<string, never>>(params: {
@@ -180,9 +180,12 @@ export class Engine {
     titleEl.innerHTML = "";
   }
 
-  public playSound(sound: SoundName) {}
+  public playSound(name: SoundName) {
+    const sound = new Howl({ src: sounds[name] });
+    sound.play();
+  }
 
-  public async play(GameClass: new () => Game) {
+  public async runCartridge(GameClass: new () => Game) {
     // Setup. Run `preload` while the title is showing. This may be game assets to download.
     this.currentGame = new GameClass();
 

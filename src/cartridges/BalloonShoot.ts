@@ -35,7 +35,10 @@ export class BalloonShoot implements Game {
   score = 0;
 
   async preload() {
-    await engine.precache(["balloon", "balloonCrashing", "houseSmall", "houseSmallDestroyed"]);
+    await engine.precache({
+      textures: ["balloon", "balloonCrashing", "houseSmall", "houseSmallDestroyed"],
+      sounds: ["gun", "crunch", "bump", "explosion"],
+    });
   }
 
   setup() {
@@ -144,6 +147,7 @@ export class BalloonShoot implements Game {
         if (balloon.y >= engine.height) {
           balloon.state = "Crashed";
           balloon.collides = false;
+          engine.playSound("bump");
           this.balloonCount++;
         }
         break;
@@ -175,6 +179,7 @@ export class BalloonShoot implements Game {
         if (t.tag === "balloon" && h.isAlive) {
           h.isAlive = false;
           h.setTexture("houseSmallDestroyed");
+          engine.playSound("crunch");
           this.addScore(-1);
         }
       });
@@ -195,6 +200,7 @@ export class BalloonShoot implements Game {
           engine.destroy(b);
           balloon.state = "Crashing";
           balloon.setTexture("balloonCrashing");
+          engine.playSound("explosion");
           this.addScore(1);
         }
       });
@@ -204,6 +210,7 @@ export class BalloonShoot implements Game {
   fireGun() {
     const angle = this.gun.rotation;
     const position = getPosition(this.gun.position, this.gun.rotation, 7);
+    engine.playSound("gun");
     engine.create<Bullet>({
       texture: this.bulletTexture,
       position,
