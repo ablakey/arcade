@@ -24,7 +24,7 @@ type Balloon = GameObject & { state: "RightUp" | "RightDown" | "Crashing" | "Cra
  * reference game, but if you're confused by why I wrote something the way I did, it might simply because I wrote it
  * poorly.
  */
-export class BalloonShoot extends Game {
+export class BalloonShoot implements Game {
   title = "Balloon Shoot!";
 
   // Game state.
@@ -34,11 +34,14 @@ export class BalloonShoot extends Game {
   balloonCount = 0;
   score = 0;
 
-  async setup() {
-    /**
-     * Prepare assets.
-     */
+  async preload() {
     await engine.precache(["balloon", "balloonCrashing", "houseSmall", "houseSmallDestroyed"]);
+  }
+
+  setup() {
+    /**
+     * Prepare dynamic assets.
+     */
     this.bulletTexture = engine.generateTexture((g) => g.beginFill(0xffffff).drawRect(0, 0, 1, 1));
     const gunTexture = engine.generateTexture((g) => g.beginFill(0xffffff).drawRect(0, 0, 8, 1));
     const gunBaseTexture = engine.generateTexture((g) => g.beginFill(0xffffff).drawCircle(0, 0, 7));

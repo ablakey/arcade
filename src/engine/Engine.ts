@@ -1,6 +1,6 @@
 import { Assets, BaseTexture, Container, Graphics, Renderer, SCALE_MODES, Sprite, Texture } from "pixi.js";
 import { assert } from "ts-essentials";
-import { BUTTONS, FPS, HEIGHT, SHOW_TITLE, TITLE_BLINK_DELAY, TITLE_REVEAL_DELAY, WIDTH } from "../config";
+import { BUTTONS, FPS, HEIGHT, TITLE_BLINK_DELAY, TITLE_REVEAL_DELAY, WIDTH } from "../config";
 import { GameObject } from "./GameObject";
 import { TextureName, textures } from "./textures";
 
@@ -179,11 +179,10 @@ export class Engine {
   }
 
   public async play(GameClass: new () => Game) {
-    // Setup.
+    // Setup. Run `preload` while the title is showing. This may be game assets to download.
     this.currentGame = new GameClass();
-    if (SHOW_TITLE) {
-      await this.showTitle(this.currentGame.title.toUpperCase());
-    }
+
+    await Promise.all([this.showTitle(this.currentGame.title.toUpperCase()), this.currentGame.preload?.()]);
 
     await this.currentGame.setup();
     this.isRunning = true;
@@ -239,9 +238,9 @@ export class Engine {
   }
 }
 
-export abstract class Game {
-  precache: TextureName[];
-  abstract tick(): void;
-  abstract setup(): Promise<void> | void;
-  public title = "UNNAMED GAME";
+export interface Game {
+  preload?(): Promise<void>;
+  tick(): void;
+  setup(): Promise<void> | void;
+  title: string;
 }
