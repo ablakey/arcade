@@ -6,6 +6,7 @@ import { Howl } from "howler";
 import { sleep } from "./utils";
 import { TextureName, textures } from "../assets/textures";
 import { SoundName, sounds } from "../assets/sounds";
+import { cartridges } from "../cartridges";
 
 export type Position = [number, number];
 
@@ -76,6 +77,95 @@ export class Engine {
       });
     });
   }
+
+  /**
+   * An infinite loop that is either running a game or providing UI to pick a game.
+   */
+  public async runEngine() {
+    while (true) {
+      await this.setTitle("PRESS SPACE TO START");
+      while (true) {
+        if (this.input.Action) {
+          break;
+        }
+        await sleep(10);
+      }
+
+      for (const cartridge of cartridges) {
+        await this.runCartridge(cartridge);
+      }
+
+      await this.setTitle("GAME OVER");
+      await sleep(3000);
+      await this.setTitle(`TOTAL SCORE: ${this.score}`);
+      await sleep(4000);
+    }
+  }
+
+  public async runCartridge(GameClass: new () => Game) {
+    // Setup. Run `preload` while the title is showing. This may be game assets to download.
+    this.currentGame = new GameClass();
+
+    await Promise.all([this.setTitle(this.currentGame.title.toUpperCase()), this.currentGame.preload?.()]);
+    await sleep(1300);
+    await this.setTitle("");
+
+    await this.currentGame.setup();
+    this.isRunning = true;
+
+    // Run.
+    this.lastTime = performance.now(); // Ignore accumulated time until now.
+    this.accumulatedTime = 0;
+    requestAnimationFrame(this.tick.bind(this));
+
+    // Wait until finished.
+    while (true) {
+      if (!this.isRunning) {
+        break;
+      }
+      await sleep(500);
+    }
+
+    // Post-game report.
+    // TODO
+
+    // Cleanup.
+    this.currentGame = undefined;
+    this.stage.removeChildren();
+    this.gameObjects.clear();
+    this.setText("");
+  }
+
+  private buttonDown(name: ButtonName, e: Event) {
+    document.querySelector(`#button${name}`)!.classList.add("active");
+    this.input[name] = true;
+    e.preventDefault();
+  }
+
+  private buttonUp(name: ButtonName) {
+    this.input[name] = false;
+    document.querySelector(`#button${name}`)!.classList.remove("active");
+  }
+
+  private tick() {
+    const currentTime = performance.now();
+    const deltaTime = currentTime - this.lastTime;
+    this.accumulatedTime += deltaTime;
+    this.lastTime = currentTime;
+
+    if (this.accumulatedTime > this.tickLength && this.isRunning) {
+      this.currentGame?.tick();
+      this.accumulatedTime = 0;
+    }
+
+    this.renderer.render(this.stage);
+
+    requestAnimationFrame(this.tick.bind(this));
+  }
+
+  /**
+   * Public interfaces for cartridges to use to interact with the system.
+   */
 
   get now() {
     return performance.now();
@@ -155,7 +245,7 @@ export class Engine {
     document.querySelector<HTMLDivElement>("#gametext")!.innerHTML = text;
   }
 
-  public async showTitle(text: string) {
+  public async setTitle(text: string) {
     const titleEl = document.querySelector<HTMLDivElement>("#overlay")!;
     titleEl.style.fontSize = `${titleEl.offsetWidth / 35}pt`;
 
@@ -176,66 +266,5 @@ export class Engine {
   public playSound(name: SoundName) {
     const sound = new Howl({ src: sounds[name], volume: 0.5 });
     sound.play();
-  }
-
-  public async runCartridge(GameClass: new () => Game) {
-    // Setup. Run `preload` while the title is showing. This may be game assets to download.
-    this.currentGame = new GameClass();
-
-    await Promise.all([this.showTitle(this.currentGame.title.toUpperCase()), this.currentGame.preload?.()]);
-    await sleep(1300);
-    await this.showTitle("");
-
-    await this.currentGame.setup();
-    this.isRunning = true;
-
-    // Run.
-    this.lastTime = performance.now(); // Ignore accumulated time until now.
-    this.accumulatedTime = 0;
-    requestAnimationFrame(this.tick.bind(this));
-
-    // Wait until finished.
-    while (true) {
-      if (!this.isRunning) {
-        break;
-      }
-      await sleep(500);
-    }
-
-    // Post-game report.
-    // TODO
-
-    // Cleanup.
-    this.currentGame = undefined;
-    this.stage.removeChildren();
-    this.gameObjects.clear();
-    this.setText("");
-  }
-
-  private buttonDown(name: ButtonName, e: Event) {
-    document.querySelector(`#button${name}`)!.classList.add("active");
-    this.input[name] = true;
-    e.preventDefault();
-  }
-
-  private buttonUp(name: ButtonName) {
-    this.input[name] = false;
-    document.querySelector(`#button${name}`)!.classList.remove("active");
-  }
-
-  private tick() {
-    const currentTime = performance.now();
-    const deltaTime = currentTime - this.lastTime;
-    this.accumulatedTime += deltaTime;
-    this.lastTime = currentTime;
-
-    if (this.accumulatedTime > this.tickLength && this.isRunning) {
-      this.currentGame?.tick();
-      this.accumulatedTime = 0;
-    }
-
-    this.renderer.render(this.stage);
-
-    requestAnimationFrame(this.tick.bind(this));
   }
 }
