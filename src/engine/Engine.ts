@@ -8,6 +8,8 @@ import { TextureName, textures } from "../assets/textures";
 import { SoundName, sounds } from "../assets/sounds";
 import { cartridges } from "../cartridges";
 
+type TextPosition = "TopLeft" | "TopRight" | "BottomLeft" | "BottomRight" | "Center";
+
 export type Position = [number, number];
 
 export interface Game {
@@ -76,6 +78,12 @@ export class Engine {
         }
       });
     });
+
+    // Set overlay font size relative to the actual size of the viewport.
+    ["topleft", "topright", "bottomleft", "bottomright", "center"].forEach((c) => {
+      const el = document.querySelector<HTMLDivElement>(`.gametext.${c}`)!;
+      el.style.fontSize = `${el.offsetWidth / 45}pt`;
+    });
   }
 
   /**
@@ -83,7 +91,7 @@ export class Engine {
    */
   public async runEngine() {
     while (true) {
-      await this.setTitle("PRESS SPACE TO START");
+      await this.setText("PRESS SPACE TO START");
       while (true) {
         if (this.input.Action) {
           break;
@@ -95,20 +103,20 @@ export class Engine {
         await this.runCartridge(cartridge);
       }
 
-      await this.setTitle("GAME OVER");
+      await this.setText("GAME OVER");
       await sleep(3000);
-      await this.setTitle(`TOTAL SCORE: ${this.score}`);
+      await this.setText(`TOTAL SCORE: ${this.score}`);
       await sleep(4000);
     }
   }
 
-  public async runCartridge(GameClass: new () => Game) {
+  private async runCartridge(GameClass: new () => Game) {
     // Setup. Run `preload` while the title is showing. This may be game assets to download.
     this.currentGame = new GameClass();
 
-    await Promise.all([this.setTitle(this.currentGame.title.toUpperCase()), this.currentGame.preload?.()]);
+    await Promise.all([this.setText(this.currentGame.title.toUpperCase()), this.currentGame.preload?.()]);
     await sleep(1300);
-    await this.setTitle("");
+    await this.setText("");
 
     await this.currentGame.setup();
     this.isRunning = true;
@@ -173,7 +181,7 @@ export class Engine {
 
   public addScore(score: number) {
     this.score += score;
-    engine.setText(`SCORE: ${this.score}`);
+    engine.setText(`SCORE: ${this.score}`, "TopRight");
   }
 
   public precache(options: { sounds?: SoundName[]; textures?: TextureName[] }) {
@@ -241,26 +249,11 @@ export class Engine {
     this.isRunning = false;
   }
 
-  public setText(text: string) {
-    document.querySelector<HTMLDivElement>("#gametext")!.innerHTML = text;
-  }
-
-  public async setTitle(text: string) {
-    const titleEl = document.querySelector<HTMLDivElement>("#overlay")!;
-    titleEl.style.fontSize = `${titleEl.offsetWidth / 35}pt`;
-
-    // Clear immediately.
-    if (!text.length) {
-      titleEl.innerHTML = "";
-    }
-
-    // Reveal characters.
-    for (let x = 0; x < text.length; x++) {
-      titleEl.innerHTML = text.slice(0, x + 1).padEnd(text.length, " ");
-      await sleep(TITLE_REVEAL_DELAY);
-    }
-
-    await sleep(TITLE_BLINK_DELAY - TITLE_REVEAL_DELAY);
+  public setText(text: string, position: TextPosition = "Center", textAlign: "Left" | "Center" = "Left") {
+    const element = document.querySelector<HTMLDivElement>(`.gametext.${position?.toLowerCase()}`)!;
+    element.style.textAlign = textAlign?.toLowerCase();
+    element.innerText = text;
+    assert(element);
   }
 
   public playSound(name: SoundName) {
