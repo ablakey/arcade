@@ -154,17 +154,17 @@ export class SpyBalloon implements Cartridge {
    * interrupts.
    */
   handleInput() {
-    if (engine.input.Right) {
+    if (engine.buttons.Right) {
       this.gun.rotation = Math.min(this.gun.rotation + GUN_ROTATION_SPEED, 0);
-    } else if (engine.input.Left) {
+    } else if (engine.buttons.Left) {
       this.gun.rotation = Math.max(this.gun.rotation - GUN_ROTATION_SPEED, -Math.PI);
     }
 
-    if (engine.input.Action && this.cooldown <= 0) {
+    if (engine.buttons.Action && this.cooldown <= 0) {
       this.fireGun();
       this.cooldown = GUN_COOLDOWN;
     } else {
-      this.cooldown -= engine.tickLength;
+      this.cooldown -= engine.tickDelta;
     }
   }
 

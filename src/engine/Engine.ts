@@ -30,8 +30,8 @@ export class Engine {
 
   public gameObjects: Map<number, GameObject> = new Map();
   public renderer: Renderer;
-  public input: Record<ButtonName, boolean>;
-  public tickLength: number;
+  public buttons = Object.fromEntries(BUTTONS.map(({ name }) => [name, false])) as Record<ButtonName, boolean>;
+  public tickDelta: number;
   public readonly width: number;
   public readonly height: number;
 
@@ -41,7 +41,6 @@ export class Engine {
 
     this.width = WIDTH;
     this.height = HEIGHT;
-    this.tickLength = 1000 / FPS;
     this.renderer = new Renderer({
       antialias: false,
       view: document.querySelector("#viewport")! as HTMLCanvasElement,
@@ -52,29 +51,38 @@ export class Engine {
 
     this.stage = new Container();
 
+    const buttonDown = (name: ButtonName, e: Event) => {
+      document.querySelector(`#button${name}`)!.classList.add("active");
+      this.buttons[name] = true;
+      e.preventDefault();
+    };
+
+    const buttonUp = (name: ButtonName) => {
+      this.buttons[name] = false;
+      document.querySelector(`#button${name}`)!.classList.remove("active");
+    };
+
+    // Bind mouse and touch inputs for buttons.
     BUTTONS.forEach(({ name }) => {
-      const buttonName = name as ButtonName;
       const buttonEl = document.querySelector<HTMLButtonElement>(`#button${name}`)!;
-      const boundDown = this.buttonDown.bind(this, buttonName);
-      const boundUp = this.buttonUp.bind(this, buttonName);
-      ["mousedown", "touchstart"].forEach((c) => buttonEl.addEventListener(c, boundDown));
-      ["mouseup", "mouseleave", "touchend"].forEach((c) => buttonEl.addEventListener(c, boundUp));
+      ["mousedown", "touchstart"].forEach((c) => buttonEl.addEventListener(c, (e: Event) => buttonDown(name, e)));
+      ["mouseup", "mouseleave", "touchend"].forEach((c) => buttonEl.addEventListener(c, () => buttonUp(name)));
     });
 
-    this.input = Object.fromEntries(BUTTONS.map(({ name }) => [name, false])) as Record<ButtonName, boolean>;
+    // Bind keydown.
+    document.addEventListener("keydown", (e) => {
+      const button = BUTTONS.find((b) => (b.codes as readonly string[]).includes(e.code));
+      if (button) {
+        buttonDown(button.name, e);
+      }
+    });
 
-    (
-      [
-        ["keydown", this.buttonDown.bind(this)],
-        ["keyup", this.buttonUp.bind(this)],
-      ] as const
-    ).forEach(([code, callback]) => {
-      document.addEventListener(code, (e) => {
-        const button = BUTTONS.find((b) => (b.codes as readonly string[]).includes(e.code));
-        if (button) {
-          callback(button.name, e);
-        }
-      });
+    // Bind keyup.
+    document.addEventListener("keyup", (e) => {
+      const button = BUTTONS.find((b) => (b.codes as readonly string[]).includes(e.code));
+      if (button) {
+        buttonUp(button.name);
+      }
     });
 
     // Set overlay font size relative to the actual size of the viewport.
@@ -127,24 +135,14 @@ export class Engine {
     this.setText("");
   }
 
-  private buttonDown(name: ButtonName, e: Event) {
-    document.querySelector(`#button${name}`)!.classList.add("active");
-    this.input[name] = true;
-    e.preventDefault();
-  }
-
-  private buttonUp(name: ButtonName) {
-    this.input[name] = false;
-    document.querySelector(`#button${name}`)!.classList.remove("active");
-  }
-
   private tick() {
     const currentTime = performance.now();
     const deltaTime = currentTime - this.lastTime;
     this.accumulatedTime += deltaTime;
     this.lastTime = currentTime;
+    this.tickDelta = deltaTime;
 
-    if (this.accumulatedTime > this.tickLength && this.isRunning) {
+    if (this.accumulatedTime > 1000 / FPS && this.isRunning) {
       this.currentCartridge?.tick();
       this.accumulatedTime = 0;
     }
