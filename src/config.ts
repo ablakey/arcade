@@ -6,8 +6,6 @@
 export const WIDTH = 160;
 export const HEIGHT = 120;
 export const FPS = 30;
-export const TITLE_BLINK_DELAY = 350;
-export const TITLE_REVEAL_DELAY = 50;
 
 export const BUTTONS = [
   { name: "Up", codes: ["ArrowUp", "KeyW"] },

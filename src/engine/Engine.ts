@@ -1,23 +1,31 @@
+import { Howl } from "howler";
 import { Assets, BaseTexture, Container, Graphics, Renderer, SCALE_MODES, Sprite, Texture } from "pixi.js";
 import { assert } from "ts-essentials";
-import { BUTTONS, FPS, HEIGHT, TITLE_BLINK_DELAY, TITLE_REVEAL_DELAY, WIDTH } from "../config";
-import { GameObject } from "./GameObject";
-import { Howl } from "howler";
-import { sleep } from "./utils";
-import { TextureName, textures } from "../assets/textures";
 import { SoundName, sounds } from "../assets/sounds";
+import { TextureName, textures } from "../assets/textures";
 import { cartridges } from "../cartridges";
+import { SpyBalloon } from "../cartridges/SpyBalloon";
+import { BUTTONS, FPS, HEIGHT, WIDTH } from "../config";
+import { GameObject } from "./GameObject";
+import { sleep } from "./utils";
 
 type TextPosition = "TopLeft" | "TopRight" | "BottomLeft" | "BottomRight" | "Center";
 
 export type Position = [number, number];
 
-export interface Game {
-  preload?(): Promise<void>;
-  tick(): void;
-  setup(): Promise<void> | void;
-  title: string;
+export abstract class Cartridge {
+  static title?: string;
+  abstract preload?(): Promise<void>;
+  abstract tick(): void;
+  abstract setup(): Promise<void> | void;
 }
+
+// export interface Cartridge {
+//   preload?(): Promise<void>;
+//   tick(): void;
+//   setup(): Promise<void> | void;
+//   title?: string;
+// }
 
 export type ButtonName = (typeof BUTTONS)[number]["name"];
 
@@ -25,7 +33,7 @@ export class Engine {
   private stage: Container;
   private lastTime = 0;
   private accumulatedTime = 0;
-  private currentGame: Game | undefined;
+  private currentCartridge: Cartridge | undefined;
   private nextId = 0;
   private isRunning = false;
 
@@ -86,39 +94,49 @@ export class Engine {
     });
   }
 
-  /**
-   * An infinite loop that is either running a game or providing UI to pick a game.
-   */
-  public async runEngine() {
-    while (true) {
-      await this.setText("PRESS SPACE TO START");
-      while (true) {
-        if (this.input.Action) {
-          break;
-        }
-        await sleep(10);
-      }
-
-      for (const cartridge of cartridges) {
-        await this.runCartridge(cartridge);
-      }
-
-      await this.setText("GAME OVER");
-      await sleep(3000);
-      await this.setText(`TOTAL SCORE: ${this.score}`);
-      await sleep(4000);
-    }
+  public start() {
+    this.runCartridge(SpyBalloon);
   }
 
-  private async runCartridge(GameClass: new () => Game) {
-    // Setup. Run `preload` while the title is showing. This may be game assets to download.
-    this.currentGame = new GameClass();
+  // /**
+  //  * An infinite loop that is either running a game or providing UI to pick a game.
+  //  */
+  // public async runEngine() {
+  //   while (true) {
+  //     await this.setText("PRESS SPACE TO START");
+  //     while (true) {
+  //       if (this.input.Action) {
+  //         break;
+  //       }
+  //       await sleep(10);
+  //     }
 
-    await Promise.all([this.setText(this.currentGame.title.toUpperCase()), this.currentGame.preload?.()]);
-    await sleep(1300);
+  //     for (const cartridge of cartridges) {
+  //       await this.runCartridge(cartridge);
+  //     }
+
+  //     await this.setText("GAME OVER");
+  //     await sleep(3000);
+  //     await this.setText(`TOTAL SCORE: ${this.score}`);
+  //     await sleep(4000);
+  //   }
+  // }
+
+  private async runCartridge(name: keyof typeof cartridges) {
+    const Cartridge = cartridges[name];
+    // Setup. Run `preload` while the title is showing. This may be game assets to download.
+    const cartridge = new Cartridge();
+    this.currentCartridge = cartridge;
+
+    if (Cartridge.title) {
+      this.setText(Cartridge.title.toUpperCase());
+    }
+
+    // Show title for a while and perform asset preload.
+    await Promise.all([sleep(1300), this.currentCartridge.preload?.()]);
     await this.setText("");
 
-    await this.currentGame.setup();
+    await this.currentCartridge.setup();
     this.isRunning = true;
 
     // Run.
@@ -138,7 +156,7 @@ export class Engine {
     // TODO
 
     // Cleanup.
-    this.currentGame = undefined;
+    this.currentCartridge = undefined;
     this.stage.removeChildren();
     this.gameObjects.clear();
     this.setText("");
@@ -162,7 +180,7 @@ export class Engine {
     this.lastTime = currentTime;
 
     if (this.accumulatedTime > this.tickLength && this.isRunning) {
-      this.currentGame?.tick();
+      this.currentCartridge?.tick();
       this.accumulatedTime = 0;
     }
 

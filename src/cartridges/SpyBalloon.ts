@@ -1,5 +1,5 @@
 import { Texture } from "pixi.js";
-import { Game } from "../engine/Engine";
+import { Cartridge } from "../engine/Engine";
 import { GameObject } from "../engine/GameObject";
 import { getPosition } from "../engine/utils";
 
@@ -24,8 +24,8 @@ type Balloon = GameObject & { state: "RightUp" | "RightDown" | "Crashing" | "Cra
  * reference game, but if you're confused by why I wrote something the way I did, it might simply because I wrote it
  * poorly.
  */
-export class SpyBalloon implements Game {
-  title = "Spy Balloon!";
+export class SpyBalloon implements Cartridge {
+  static title = "Spy Balloon!";
 
   // Game state.
   bulletTexture: Texture;
