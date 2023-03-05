@@ -13,7 +13,7 @@ type TextPosition = "TopLeft" | "TopRight" | "BottomLeft" | "BottomRight" | "Cen
 export type Position = [number, number];
 
 export abstract class Cartridge {
-  static title?: string;
+  static title: string | undefined;
   abstract preload?(): Promise<void>;
   abstract tick(): boolean;
   abstract setup(): Promise<void> | void;
@@ -31,7 +31,7 @@ export class Engine {
   public gameObjects: Map<number, GameObject> = new Map();
   public renderer: Renderer;
   public buttons = Object.fromEntries(BUTTONS.map(({ name }) => [name, false])) as Record<ButtonName, boolean>;
-  public tickDelta: number; // The number of ms since the previous tick.
+  public tickDelta = 0; // The number of ms since the previous tick.
   public readonly width: number;
   public readonly height: number;
 
@@ -95,8 +95,9 @@ export class Engine {
     requestAnimationFrame(this.tick.bind(this));
 
     setTimeout(async () => {
-      await this.runCartridge("SpyBalloon");
-      await this.runCartridge("SpyBalloon");
+      while (true) {
+        await this.runCartridge("GameSelect");
+      }
     }, 0);
   }
 
@@ -140,13 +141,12 @@ export class Engine {
   private tick() {
     const currentTime = performance.now();
     const deltaTime = currentTime - this.lastTime;
-    this.accumulatedTime += deltaTime;
+    this.tickDelta += deltaTime;
     this.lastTime = currentTime;
-    this.tickDelta = deltaTime;
 
-    if (this.currentCartridge && this.accumulatedTime > 1000 / FPS && this.isRunning) {
+    if (this.currentCartridge && this.tickDelta > 1000 / FPS && this.isRunning) {
       this.isRunning = this.currentCartridge.tick();
-      this.accumulatedTime = 0;
+      this.tickDelta = 0;
     }
 
     this.renderer.render(this.stage);
