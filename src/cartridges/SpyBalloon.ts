@@ -12,7 +12,7 @@ const GUN_ROTATION_SPEED = 0.08;
 const BULLET_SPEED = 4;
 const BULLET_LIFESPAN = 2_000;
 const BALLOON_LIFESPAN = 7_000;
-const TOTAL_BALLOONS = 5;
+const TOTAL_BALLOONS = 1;
 
 type House = GameObject & { isAlive: boolean; tag: "house" };
 type Bullet = GameObject & { angle: number };
@@ -81,11 +81,7 @@ export class SpyBalloon implements Cartridge {
     this.handleBullets();
     this.handleHouses();
 
-    if (this.balloonCount >= TOTAL_BALLOONS) {
-      setTimeout(() => {
-        engine.finishGame();
-      }, 1_500);
-    }
+    return this.balloonCount < TOTAL_BALLOONS;
   }
 
   /**

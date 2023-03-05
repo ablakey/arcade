@@ -15,7 +15,7 @@ export type Position = [number, number];
 export abstract class Cartridge {
   static title?: string;
   abstract preload?(): Promise<void>;
-  abstract tick(): void;
+  abstract tick(): boolean;
   abstract setup(): Promise<void> | void;
 }
 
@@ -31,7 +31,7 @@ export class Engine {
   public gameObjects: Map<number, GameObject> = new Map();
   public renderer: Renderer;
   public buttons = Object.fromEntries(BUTTONS.map(({ name }) => [name, false])) as Record<ButtonName, boolean>;
-  public tickDelta: number;
+  public tickDelta: number; // The number of ms since the previous tick.
   public readonly width: number;
   public readonly height: number;
 
@@ -91,11 +91,17 @@ export class Engine {
       el.style.fontSize = `${el.offsetWidth / 45}pt`;
     });
 
-    // Start the first cartridge but do it after the constructor has returned.
-    setTimeout(() => this.runCartridge("SpyBalloon"), 0);
+    // Begin game loop.
+    requestAnimationFrame(this.tick.bind(this));
+
+    setTimeout(async () => {
+      await this.runCartridge("SpyBalloon");
+      await this.runCartridge("SpyBalloon");
+    }, 0);
   }
 
   private async runCartridge(name: keyof typeof cartridges) {
+    console.log("start new cartridge");
     const Cartridge = cartridges[name];
     // Setup. Run `preload` while the title is showing. This may be game assets to download.
     const cartridge = new Cartridge();
@@ -115,18 +121,14 @@ export class Engine {
     // Run.
     this.lastTime = performance.now(); // Ignore accumulated time until now.
     this.accumulatedTime = 0;
-    requestAnimationFrame(this.tick.bind(this));
 
     // Wait until finished.
     while (true) {
       if (!this.isRunning) {
         break;
       }
-      await sleep(500);
+      await sleep(100);
     }
-
-    // Post-game report.
-    // TODO
 
     // Cleanup.
     this.currentCartridge = undefined;
@@ -142,8 +144,8 @@ export class Engine {
     this.lastTime = currentTime;
     this.tickDelta = deltaTime;
 
-    if (this.accumulatedTime > 1000 / FPS && this.isRunning) {
-      this.currentCartridge?.tick();
+    if (this.currentCartridge && this.accumulatedTime > 1000 / FPS && this.isRunning) {
+      this.isRunning = this.currentCartridge.tick();
       this.accumulatedTime = 0;
     }
 
@@ -212,10 +214,6 @@ export class Engine {
     const g = new Graphics();
     drawCallback(g);
     return this.renderer.generateTexture(g);
-  }
-
-  public finishGame() {
-    this.isRunning = false;
   }
 
   /**
