@@ -45,9 +45,9 @@ export class SpyBalloon implements Cartridge {
     /**
      * Prepare dynamic assets.
      */
-    this.bulletTexture = engine.generateTexture((g) => g.beginFill(0xffffff).drawRect(0, 0, 1, 1));
-    const gunTexture = engine.generateTexture((g) => g.beginFill(0xffffff).drawRect(0, 0, 8, 1));
-    const gunBaseTexture = engine.generateTexture((g) => g.beginFill(0xffffff).drawCircle(0, 0, 7));
+    this.bulletTexture = engine.makeTexture((g) => g.beginFill(0xffffff).drawRect(0, 0, 1, 1));
+    const gunTexture = engine.makeTexture((g) => g.beginFill(0xffffff).drawRect(0, 0, 8, 1));
+    const gunBaseTexture = engine.makeTexture((g) => g.beginFill(0xffffff).drawCircle(0, 0, 7));
 
     /**
      * Prepare stage.
@@ -67,7 +67,7 @@ export class SpyBalloon implements Cartridge {
     this.gun.sprite.anchor.set(0);
     this.gun.rotation = -(Math.PI / 2);
     engine.create({ texture: gunBaseTexture, position: [GUN_POSITION_X, engine.height] });
-    engine.addScore(0);
+    // engine.addScore(0);
   }
 
   /**
@@ -117,7 +117,7 @@ export class SpyBalloon implements Cartridge {
     }
 
     if (
-      engine.now - balloon.created > BALLOON_LIFESPAN &&
+      performance.now() - balloon.created > BALLOON_LIFESPAN &&
       balloon.state !== "Crashing" &&
       balloon.state !== "Crashed"
     ) {
@@ -175,7 +175,7 @@ export class SpyBalloon implements Cartridge {
           h.isAlive = false;
           h.setTexture("houseSmallDestroyed");
           engine.playSound("crunch");
-          engine.addScore(-1);
+          // engine.addScore(-1);
         }
       });
     });
@@ -196,7 +196,7 @@ export class SpyBalloon implements Cartridge {
           balloon.state = "Crashing";
           balloon.setTexture("balloonCrashing");
           engine.playSound("explosion");
-          engine.addScore(1);
+          // engine.addScore(1);
         }
       });
     });

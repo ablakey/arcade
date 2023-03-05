@@ -1,12 +1,11 @@
 import { Howl } from "howler";
-import { Assets, BaseTexture, Container, Graphics, Renderer, SCALE_MODES, Sprite, Texture } from "pixi.js";
+import { Assets, BaseTexture, Container, Graphics, Renderer, SCALE_MODES } from "pixi.js";
 import { assert } from "ts-essentials";
 import { SoundName, sounds } from "../assets/sounds";
 import { TextureName, textures } from "../assets/textures";
 import { cartridges } from "../cartridges";
-import { SpyBalloon } from "../cartridges/SpyBalloon";
 import { BUTTONS, FPS, HEIGHT, WIDTH } from "../config";
-import { GameObject } from "./GameObject";
+import { GameObject, GameObjectParams } from "./GameObject";
 import { sleep } from "./utils";
 
 type TextPosition = "TopLeft" | "TopRight" | "BottomLeft" | "BottomRight" | "Center";
@@ -20,13 +19,6 @@ export abstract class Cartridge {
   abstract setup(): Promise<void> | void;
 }
 
-// export interface Cartridge {
-//   preload?(): Promise<void>;
-//   tick(): void;
-//   setup(): Promise<void> | void;
-//   title?: string;
-// }
-
 export type ButtonName = (typeof BUTTONS)[number]["name"];
 
 export class Engine {
@@ -34,10 +26,8 @@ export class Engine {
   private lastTime = 0;
   private accumulatedTime = 0;
   private currentCartridge: Cartridge | undefined;
-  private nextId = 0;
   private isRunning = false;
 
-  public score = 0;
   public gameObjects: Map<number, GameObject> = new Map();
   public renderer: Renderer;
   public input: Record<ButtonName, boolean>;
@@ -92,35 +82,10 @@ export class Engine {
       const el = document.querySelector<HTMLDivElement>(`.gametext.${c}`)!;
       el.style.fontSize = `${el.offsetWidth / 45}pt`;
     });
+
+    // Start the first cartridge but do it after the constructor has returned.
+    setTimeout(() => this.runCartridge("SpyBalloon"), 0);
   }
-
-  public start() {
-    this.runCartridge(SpyBalloon);
-  }
-
-  // /**
-  //  * An infinite loop that is either running a game or providing UI to pick a game.
-  //  */
-  // public async runEngine() {
-  //   while (true) {
-  //     await this.setText("PRESS SPACE TO START");
-  //     while (true) {
-  //       if (this.input.Action) {
-  //         break;
-  //       }
-  //       await sleep(10);
-  //     }
-
-  //     for (const cartridge of cartridges) {
-  //       await this.runCartridge(cartridge);
-  //     }
-
-  //     await this.setText("GAME OVER");
-  //     await sleep(3000);
-  //     await this.setText(`TOTAL SCORE: ${this.score}`);
-  //     await sleep(4000);
-  //   }
-  // }
 
   private async runCartridge(name: keyof typeof cartridges) {
     const Cartridge = cartridges[name];
@@ -190,49 +155,38 @@ export class Engine {
   }
 
   /**
-   * Public interfaces for cartridges to use to interact with the system.
+   * Precache a subset of assets for a given game. This allows a game to decide what assets it wants to use, without
+   * precaching all of them. As a result, the engine can provide a lot of assets but only prepare the ones needed.
+   *
+   * If an asset is used that isn't precached, it might cause a bit of lag as it waits to download it.
    */
-
-  get now() {
-    return performance.now();
-  }
-
-  public addScore(score: number) {
-    this.score += score;
-    engine.setText(`SCORE: ${this.score}`, "TopRight");
-  }
-
   public precache(options: { sounds?: SoundName[]; textures?: TextureName[] }) {
     options.sounds?.forEach((s) => new Howl({ src: sounds[s], preload: true }));
     return Promise.all(options.textures?.map((a) => Assets.load(textures[a])) ?? []);
   }
 
-  public create<G extends Record<string, any> = Record<string, never>>(params: {
-    texture: Texture | TextureName;
-    position: Position;
-    attrs?: Omit<G, keyof GameObject | "tag">;
-    tag?: string;
-    collides?: boolean;
-  }): GameObject & G {
-    const { texture, position, attrs, tag, collides } = params;
-    const tex = typeof texture === "string" ? Texture.from(textures[texture]) : texture;
-    const obj = new GameObject();
-    obj.sprite = new Sprite(tex);
-    obj.x = position[0];
-    obj.y = position[1];
-    obj.id = this.nextId++;
-    obj.sprite.anchor.set(0.5);
-    obj.tag = tag;
-    obj.collides = collides ?? false;
-    obj.created = performance.now();
+  /**
+   * Create a GameObject and assign it to the stage and collection of GameObjects. A developer can optionally add
+   * additional attributes to a GameObject, as long as the attribute names aren't already in use by the GameObject. This
+   * is for convenience to prevent having to access something like `myObj.attrs.myAttr` and instead have: `myObj.attr`.
+   */
+  public create<G extends Record<string, any> = Record<string, never>>(
+    params: GameObjectParams & {
+      attrs?: Omit<G, keyof GameObject | "tag">;
+    }
+  ): GameObject & G {
+    const { attrs, ...rest } = params;
+    const obj = new GameObject(rest);
     Object.assign(obj, attrs ?? {});
-
     this.gameObjects.set(obj.id, obj);
     this.stage.addChild(obj.sprite);
 
     return obj as GameObject & G;
   }
 
+  /**
+   * Clean up a GameObject by providing either the object or its ID.
+   */
   public destroy(obj: number | GameObject) {
     const object = typeof obj === "number" ? this.gameObjects.get(obj) : obj;
     assert(object);
@@ -240,24 +194,23 @@ export class Engine {
     this.gameObjects.delete(object.id);
   }
 
+  /**
+   * Return a collection of objects based on query parameters. The parameters are an intersection, meaning that it will
+   * provide all objects that fit the provided tag AND if it is collidable.
+   */
   public getObjects<T extends Record<string, any> = Record<string, never>>(options?: {
     collidable?: boolean;
     tag?: T["tag"];
   }): (T & GameObject)[] {
-    let objects = Array.from(this.gameObjects.values());
-
-    if (options?.collidable) {
-      objects = objects.filter((o) => o.collides);
-    }
-
-    if (options?.tag) {
-      objects = objects.filter((o) => o.tag === options.tag);
-    }
-
-    return objects as (T & GameObject)[];
+    return Array.from(this.gameObjects.values()).filter(
+      (o) => (options?.collidable ? o.collides : true) && (options?.tag ? o.tag === options.tag : true)
+    ) as (T & GameObject)[];
   }
 
-  public generateTexture(drawCallback: (graphics: Graphics) => void) {
+  /**
+   * Imperatively draw a texture using the `Pixi.Graphics` API, which is basically the Canvas drawing API.
+   */
+  public makeTexture(drawCallback: (graphics: Graphics) => void) {
     const g = new Graphics();
     drawCallback(g);
     return this.renderer.generateTexture(g);
@@ -267,6 +220,11 @@ export class Engine {
     this.isRunning = false;
   }
 
+  /**
+   * Set text on the screen in one of five positions. Optionally pick an alignment for the text, which is generally
+   * only useful if you want the Center position to be centered or left justified. The text remains visible until it is
+   * overwritten. Set an empty string to clear.
+   */
   public setText(text: string, position: TextPosition = "Center", textAlign: "Left" | "Center" = "Left") {
     const element = document.querySelector<HTMLDivElement>(`.gametext.${position?.toLowerCase()}`)!;
     element.style.textAlign = textAlign?.toLowerCase();
@@ -274,6 +232,9 @@ export class Engine {
     assert(element);
   }
 
+  /**
+   * Play a sound once. If a sound is not precached, it may not play the first time.
+   */
   public playSound(name: SoundName) {
     const sound = new Howl({ src: sounds[name], volume: 0.5 });
     sound.play();

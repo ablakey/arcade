@@ -1,7 +1,14 @@
 import { Sprite, Texture } from "pixi.js";
 import { TextureName, textures } from "../assets/textures";
 import { Position } from "./Engine";
-import { getPosition } from "./utils";
+import { genId, getPosition } from "./utils";
+
+export type GameObjectParams = {
+  texture: Texture | TextureName;
+  position: Position;
+  tag?: string;
+  collides?: boolean;
+};
 
 export class GameObject {
   id: number;
@@ -44,6 +51,21 @@ export class GameObject {
 
   get width() {
     return this.sprite.width;
+  }
+
+  constructor(params: GameObjectParams) {
+    const { texture, position, tag, collides } = params;
+
+    this.sprite = new Sprite(typeof texture === "string" ? Texture.from(textures[texture]) : texture);
+    this.x = position[0];
+    this.y = position[1];
+    this.id = genId();
+    this.sprite.anchor.set(0.5);
+    this.tag = tag;
+    this.collides = collides ?? false;
+    this.created = performance.now();
+
+    return this;
   }
 
   setTexture(texture: Texture | TextureName) {

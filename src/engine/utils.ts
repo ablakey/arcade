@@ -14,3 +14,9 @@ export function getPosition(position: Position, angle: number, distance: number)
 export function getDistance(a: Position, b: Position) {
   return Math.sqrt((b[0] - a[0]) ** 2 + (b[1] - a[1]) ** 2);
 }
+
+let id = 0;
+
+export function genId() {
+  return id++;
+}

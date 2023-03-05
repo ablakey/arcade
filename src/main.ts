@@ -2,7 +2,6 @@ import { Engine } from "./engine/Engine";
 
 window.onload = async () => {
   window.engine = new Engine();
-  engine.start();
 };
 
 /**
