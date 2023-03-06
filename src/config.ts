@@ -3,7 +3,7 @@
  * Adjust at your own risk!
  */
 
-import { cartridges } from "./cartridges";
+import { CartridgeName } from "./cartridges";
 
 export const WIDTH = 160;
 export const HEIGHT = 120;
@@ -18,4 +18,4 @@ export const BUTTONS = [
 ] as const;
 
 // Debug tool to skip game select.
-const FORCE_LOAD_GAME: keyof typeof cartridges | null = "SpyBalloon";
+export const INITIAL_CARTRIDGE: CartridgeName = "GameSelect";

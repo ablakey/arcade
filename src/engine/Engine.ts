@@ -3,8 +3,8 @@ import { Assets, BaseTexture, Container, Graphics, Renderer, SCALE_MODES } from 
 import { assert } from "ts-essentials";
 import { SoundName, sounds } from "../assets/sounds";
 import { TextureName, textures } from "../assets/textures";
-import { cartridges } from "../cartridges";
-import { BUTTONS, FPS, HEIGHT, WIDTH } from "../config";
+import { CartridgeName, cartridges } from "../cartridges";
+import { BUTTONS, FPS, HEIGHT, INITIAL_CARTRIDGE, WIDTH } from "../config";
 import { GameObject, GameObjectParams } from "./GameObject";
 import { sleep } from "./utils";
 
@@ -24,10 +24,10 @@ export type ButtonName = (typeof BUTTONS)[number]["name"];
 export class Engine {
   private stage: Container;
   private lastTime = 0;
-  private accumulatedTime = 0;
   private currentCartridge: Cartridge | undefined;
   private isRunning = false;
 
+  public nextCartridge: CartridgeName | null = null;
   public gameObjects: Map<number, GameObject> = new Map();
   public renderer: Renderer;
   public buttons = Object.fromEntries(BUTTONS.map(({ name }) => [name, false])) as Record<ButtonName, boolean>;
@@ -95,14 +95,11 @@ export class Engine {
     requestAnimationFrame(this.tick.bind(this));
 
     setTimeout(async () => {
-      while (true) {
-        await this.runCartridge("GameSelect");
-      }
+      this.runCartridge(INITIAL_CARTRIDGE);
     }, 0);
   }
 
-  private async runCartridge(name: keyof typeof cartridges) {
-    console.log("start new cartridge");
+  public async runCartridge(name: CartridgeName) {
     const Cartridge = cartridges[name];
     // Setup. Run `preload` while the title is showing. This may be game assets to download.
     const cartridge = new Cartridge();
@@ -110,10 +107,12 @@ export class Engine {
 
     if (Cartridge.title) {
       this.setText(Cartridge.title.toUpperCase());
+      await Promise.all([sleep(1600), this.currentCartridge.preload?.()]);
+    } else {
+      await this.currentCartridge.preload?.();
     }
 
     // Show title for a while and perform asset preload.
-    await Promise.all([sleep(1300), this.currentCartridge.preload?.()]);
     await this.setText("");
 
     await this.currentCartridge.setup();
@@ -121,7 +120,6 @@ export class Engine {
 
     // Run.
     this.lastTime = performance.now(); // Ignore accumulated time until now.
-    this.accumulatedTime = 0;
 
     // Wait until finished.
     while (true) {
@@ -136,6 +134,16 @@ export class Engine {
     this.stage.removeChildren();
     this.gameObjects.clear();
     this.setText("");
+    this.setText("", "BottomLeft");
+    this.setText("", "BottomRight");
+    this.setText("", "TopLeft");
+    this.setText("", "TopRight");
+
+    setTimeout(() => {
+      console.log(this.nextCartridge ?? INITIAL_CARTRIDGE);
+      this.runCartridge(this.nextCartridge ?? INITIAL_CARTRIDGE);
+      this.nextCartridge = null;
+    }, 0);
   }
 
   private tick() {

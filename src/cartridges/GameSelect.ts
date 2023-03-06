@@ -1,4 +1,4 @@
-import { cartridges } from ".";
+import { CartridgeName, cartridges } from ".";
 import { Cartridge } from "../engine/Engine";
 
 const DEBOUNCE = 300;
@@ -6,28 +6,23 @@ const DEBOUNCE = 300;
 export class GameSelect implements Cartridge {
   static title = undefined; // Do not display a title when loading this cartridge.
 
-  titleList: [string, typeof Cartridge][] = [];
+  titleList: [CartridgeName, typeof Cartridge][] = [];
   selectIndex = 0;
   cooldown = 0;
 
   setup() {
-    Object.values(cartridges).forEach((c) => console.log(c.title));
-    this.titleList = Object.entries(cartridges).filter(([, cartridge]) => cartridge.title);
+    this.titleList = Object.entries(cartridges).filter(([, cartridge]) => cartridge.title) as [
+      CartridgeName,
+      typeof Cartridge
+    ][];
 
-    // PICK A GAME
-
-    // Up arrow (?)  (triangle)
-    // GAME NAME
-
-    // Down arrow (?)
     this.renderText();
   }
 
   renderText() {
-    const text = `PICK A GAME\n\n\n\n▲\n\nTITLE\n\n▼`;
-    // engine.setText(text, "Center", "Center");
-    console.log("render");
-    engine.setText(this.selectIndex.toString());
+    const title = `${this.selectIndex + 1} - ${this.titleList[this.selectIndex][1].title}`;
+    const text = `PICK A GAME\n\n\n\n▲\n\n${title}\n\n▼`;
+    engine.setText(text, "Center", "Center");
   }
 
   tick() {
@@ -40,6 +35,10 @@ export class GameSelect implements Cartridge {
 
     // Check for button press.
     if (this.cooldown === 0) {
+      if (engine.buttons.Action) {
+        engine.nextCartridge = this.titleList[this.selectIndex][0];
+        return false;
+      }
       if (engine.buttons.Down) {
         this.selectIndex = this.selectIndex + 1 >= this.titleList.length ? 0 : this.selectIndex + 1;
       } else if (engine.buttons.Up) {
