@@ -26,6 +26,7 @@ export class Engine {
   private lastTime = 0;
   private currentCartridge: Cartridge | undefined;
   private isRunning = false;
+  private textCache: Partial<Record<TextPosition, string>> = {};
 
   public nextCartridge: CartridgeName | null = null;
   public gameObjects: Map<number, GameObject> = new Map();
@@ -228,12 +229,18 @@ export class Engine {
    * Set text on the screen in one of five positions. Optionally pick an alignment for the text, which is generally
    * only useful if you want the Center position to be centered or left justified. The text remains visible until it is
    * overwritten. Set an empty string to clear.
+   *
+   * The textCache is used to prevent unnecessary DOM updates. They're far more expensive than some string work. This
+   * way games don't have to worry too hard about calling setText only once if they want to report state.
    */
   public setText(text: string, position: TextPosition = "Center", textAlign: "Left" | "Center" = "Left") {
-    const element = document.querySelector<HTMLDivElement>(`.gametext.${position?.toLowerCase()}`)!;
-    element.style.textAlign = textAlign?.toLowerCase();
-    element.innerText = text;
-    assert(element);
+    const cacheString = `${position}${text}`;
+    if (this.textCache[position] !== cacheString) {
+      this.textCache[position] = cacheString;
+      const element = document.querySelector<HTMLDivElement>(`.gametext.${position?.toLowerCase()}`)!;
+      element.style.textAlign = textAlign?.toLowerCase();
+      element.innerText = text;
+    }
   }
 
   /**

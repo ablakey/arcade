@@ -13,6 +13,7 @@ const BULLET_SPEED = 4;
 const BULLET_LIFESPAN = 2_000;
 const BALLOON_LIFESPAN = 7_000;
 const TOTAL_BALLOONS = 1;
+const END_GAME_DELAY = 3_000;
 
 type House = GameObject & { isAlive: boolean; tag: "house" };
 type Bullet = GameObject & { angle: number };
@@ -31,8 +32,9 @@ export class SpyBalloon implements Cartridge {
   bulletTexture: Texture;
   gun: GameObject;
   cooldown = 0;
-  balloonCount = 0;
+  hitCount = 0;
   score = 0;
+  endGameDelay = 0;
 
   async preload() {
     await engine.precache({
@@ -81,7 +83,12 @@ export class SpyBalloon implements Cartridge {
     this.handleBullets();
     this.handleHouses();
 
-    return this.balloonCount < TOTAL_BALLOONS;
+    if (this.hitCount >= TOTAL_BALLOONS) {
+      engine.setText("GAME OVER");
+      this.endGameDelay += engine.tickDelta;
+    }
+
+    return this.endGameDelay < END_GAME_DELAY;
   }
 
   /**
@@ -92,10 +99,7 @@ export class SpyBalloon implements Cartridge {
     let balloon: (GameObject & Balloon) | undefined;
 
     // Only returns a living balloon: it's collidable. Note how unreliable this could be.
-    if (
-      !engine.getObjects<Balloon>({ tag: "balloon", collidable: true }).length &&
-      this.balloonCount < TOTAL_BALLOONS
-    ) {
+    if (!engine.getObjects<Balloon>({ tag: "balloon", collidable: true }).length && this.hitCount < TOTAL_BALLOONS) {
       balloon = engine.create<Balloon>({
         texture: "balloon",
         position: [0, 0],
@@ -118,7 +122,7 @@ export class SpyBalloon implements Cartridge {
       balloon.state !== "Crashed"
     ) {
       engine.destroy(balloon);
-      this.balloonCount++;
+      this.hitCount++;
       return;
     }
 
@@ -139,7 +143,7 @@ export class SpyBalloon implements Cartridge {
           balloon.state = "Crashed";
           balloon.collides = false;
           engine.playSound("bump");
-          this.balloonCount++;
+          this.hitCount++;
         }
         break;
     }
