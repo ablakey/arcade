@@ -12,7 +12,7 @@ const GUN_ROTATION_SPEED = 0.08;
 const BULLET_SPEED = 4;
 const BULLET_LIFESPAN = 2_000;
 const BALLOON_LIFESPAN = 7_000;
-const TOTAL_BALLOONS = 1;
+const TOTAL_BALLOONS = 5;
 const END_GAME_DELAY = 3_000;
 
 type House = GameObject & { isAlive: boolean; tag: "house" };
@@ -69,7 +69,8 @@ export class SpyBalloon implements Cartridge {
     this.gun.sprite.anchor.set(0);
     this.gun.rotation = -(Math.PI / 2);
     engine.create({ texture: gunBaseTexture, position: [GUN_POSITION_X, engine.height] });
-    // engine.addScore(0);
+
+    this.addScore(0);
   }
 
   /**
@@ -175,7 +176,7 @@ export class SpyBalloon implements Cartridge {
           h.isAlive = false;
           h.setTexture("houseSmallDestroyed");
           engine.playSound("crunch");
-          // engine.addScore(-1);
+          this.addScore(-50);
         }
       });
     });
@@ -196,10 +197,15 @@ export class SpyBalloon implements Cartridge {
           balloon.state = "Crashing";
           balloon.setTexture("balloonCrashing");
           engine.playSound("explosion");
-          // engine.addScore(1);
+          this.addScore(100);
         }
       });
     });
+  }
+
+  addScore(score: number) {
+    this.score += score;
+    engine.setText(`SCORE: ${this.score}`, "TopRight");
   }
 
   fireGun() {
