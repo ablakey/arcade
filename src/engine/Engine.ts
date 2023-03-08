@@ -219,7 +219,7 @@ export class Engine {
   /**
    * Imperatively draw a texture using the `Pixi.Graphics` API, which is basically the Canvas drawing API.
    */
-  public makeTexture(drawCallback: (graphics: Graphics) => void) {
+  public generateTexture(drawCallback: (graphics: Graphics) => void) {
     const g = new Graphics();
     drawCallback(g);
     return this.renderer.generateTexture(g);
@@ -249,5 +249,12 @@ export class Engine {
   public playSound(name: SoundName) {
     const sound = new Howl({ src: sounds[name], volume: 0.5 });
     sound.play();
+  }
+
+  public setCamera(position: Position) {
+    this.stage.pivot.x = position[0];
+    this.stage.pivot.y = position[1];
+    this.stage.position.x = this.renderer.width / 2;
+    this.stage.position.y = this.renderer.height / 2;
   }
 }

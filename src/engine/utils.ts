@@ -15,6 +15,12 @@ export function getDistance(a: Position, b: Position) {
   return Math.sqrt((b[0] - a[0]) ** 2 + (b[1] - a[1]) ** 2);
 }
 
+export function getPositionAt(a: Position, b: Position, percentage: number): Position {
+  const x = a[0] * (1 - percentage) + b[0] * percentage;
+  const y = a[1] * (1 - percentage) + b[1] * percentage;
+  return [x, y];
+}
+
 let id = 0;
 
 export function genId() {

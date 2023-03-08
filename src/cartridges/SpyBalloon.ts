@@ -47,9 +47,9 @@ export class SpyBalloon implements Cartridge {
     /**
      * Prepare dynamic assets.
      */
-    this.bulletTexture = engine.makeTexture((g) => g.beginFill(0xffffff).drawRect(0, 0, 1, 1));
-    const gunTexture = engine.makeTexture((g) => g.beginFill(0xffffff).drawRect(0, 0, 8, 1));
-    const gunBaseTexture = engine.makeTexture((g) => g.beginFill(0xffffff).drawCircle(0, 0, 7));
+    this.bulletTexture = engine.generateTexture((g) => g.beginFill(0xffffff).drawRect(0, 0, 1, 1));
+    const gunTexture = engine.generateTexture((g) => g.beginFill(0xffffff).drawRect(0, 0, 8, 1));
+    const gunBaseTexture = engine.generateTexture((g) => g.beginFill(0xffffff).drawCircle(0, 0, 7));
 
     /**
      * Prepare stage.

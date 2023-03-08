@@ -6,6 +6,7 @@ import { genId, getPosition } from "./utils";
 export type GameObjectParams = {
   texture: Texture | TextureName;
   position: Position;
+  anchor?: Position;
   tag?: string;
   collides?: boolean;
 };
@@ -45,6 +46,11 @@ export class GameObject {
     return [this.x, this.y];
   }
 
+  set position(p: Position) {
+    this.x = p[0];
+    this.y = p[1];
+  }
+
   get height() {
     return this.sprite.height;
   }
@@ -54,13 +60,13 @@ export class GameObject {
   }
 
   constructor(params: GameObjectParams) {
-    const { texture, position, tag, collides } = params;
+    const { texture, position, tag, collides, anchor } = params;
 
     this.sprite = new Sprite(typeof texture === "string" ? Texture.from(textures[texture]) : texture);
     this.x = position[0];
     this.y = position[1];
     this.id = genId();
-    this.sprite.anchor.set(0.5);
+    this.sprite.anchor.set(...(anchor ?? [0.5]));
     this.tag = tag;
     this.collides = collides ?? false;
     this.created = performance.now();

@@ -14,8 +14,9 @@ export const BUTTONS = [
   { name: "Down", codes: ["ArrowDown", "KeyS"] },
   { name: "Left", codes: ["ArrowLeft", "KeyA"] },
   { name: "Right", codes: ["ArrowRight", "KeyD"] },
-  { name: "Action", codes: ["Space"] },
+  { name: "Action", codes: ["Space", "Enter"] },
 ] as const;
 
 // Debug tool to skip game select.
-export const INITIAL_CARTRIDGE: CartridgeName = "GameSelect";
+// export const INITIAL_CARTRIDGE: CartridgeName = "GameSelect";
+export const INITIAL_CARTRIDGE: CartridgeName = "TrolleyProblem";

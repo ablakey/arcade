@@ -239,10 +239,15 @@ p {
 .action .shadow,
 .action .edge {
   font-size: 1.7em;
-  width: 128px;
-  height: 48px;
+  min-width: 128px;
+  height: 64px;
   padding: 12px;
   border-radius: 6px;
+}
+
+.action span {
+  display: inline-flex;
+  align-items: center;
 }
 
 .pushable.active .front {
