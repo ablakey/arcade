@@ -19,4 +19,4 @@ export const BUTTONS = [
 
 // Debug tool to skip game select.
 // export const INITIAL_CARTRIDGE: CartridgeName = "GameSelect";
-export const INITIAL_CARTRIDGE: CartridgeName = "TrolleyProblem";
+export const INITIAL_CARTRIDGE: CartridgeName = "BankRun";

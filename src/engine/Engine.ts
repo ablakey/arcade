@@ -15,7 +15,7 @@ export type Position = [number, number];
 export abstract class Cartridge {
   static title: string | undefined;
   abstract preload?(): Promise<void>;
-  abstract tick(): boolean;
+  abstract tick(): boolean | void;
   abstract setup(): Promise<void> | void;
 }
 
@@ -118,6 +118,7 @@ export class Engine {
 
     await this.currentCartridge.setup();
     this.isRunning = true;
+    this.tickDelta = 0;
 
     // Run.
     this.lastTime = performance.now(); // Ignore accumulated time until now.
@@ -154,7 +155,7 @@ export class Engine {
     this.lastTime = currentTime;
 
     if (this.currentCartridge && this.tickDelta > 1000 / FPS && this.isRunning) {
-      this.isRunning = this.currentCartridge.tick();
+      this.isRunning = !(this.currentCartridge.tick() ?? false);
       this.tickDelta = 0;
     }
 
