@@ -10,6 +10,7 @@ export type GameObjectParams = {
   anchor?: Position;
   tag?: string;
   collides?: boolean;
+  zIndex?: number;
 };
 
 export class GameObject {
@@ -62,7 +63,7 @@ export class GameObject {
   }
 
   constructor(params: GameObjectParams) {
-    const { texture, position, tag, collides, anchor, lifetime } = params;
+    const { texture, position, tag, collides, anchor, lifetime, zIndex } = params;
 
     this.sprite = new Sprite(typeof texture === "string" ? Texture.from(textures[texture]) : texture);
     this.x = position[0];
@@ -73,6 +74,7 @@ export class GameObject {
     this.tag = tag;
     this.collides = collides ?? false;
     this.created = engine.now;
+    this.sprite.zIndex = zIndex ?? 0;
 
     return this;
   }

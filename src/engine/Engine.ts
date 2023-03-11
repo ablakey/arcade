@@ -52,6 +52,7 @@ export class Engine {
     });
 
     this.stage = new Container();
+    this.stage.sortableChildren = true;
 
     const buttonDown = (name: ButtonName, e: Event) => {
       document.querySelector(`#button${name}`)!.classList.add("active");

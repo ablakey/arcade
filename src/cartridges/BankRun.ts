@@ -10,19 +10,19 @@ type Bullet = GameObject;
 const BANK_SPEED = 2.5;
 const PLAYER_Y_SPEED = 3.0;
 const DOODAD_SPAWN_RATE = 0.55;
-const WAKE_DISTANCE = 25;
+const WAKE_DISTANCE = 30;
 const BANK_PLAYER_GAP = 100;
 const CAMERA_OFFSET = 50;
 const BULLET_SPEED = 10;
 const GUN_COOLDOWN = 350;
 const STARTING_LIQUIDITY = 200;
 const BULLET_COST = 10;
-const GAME_OVER_COUNTDOWN = 3_000;
+const GAME_OVER_COUNTDOWN = 2_500;
 const RESET_COOLDOWN = 3_000;
-const MONEY_VALUE = 50;
+const MONEY_VALUE = 40;
 const MONEY_DRAIN_RATE = 0.3;
 const ANIMATION_PACE = 250;
-const SHAKE_INTENSITY = 2;
+const SHAKE_INTENSITY = 1.5;
 
 export class BankRun implements Cartridge {
   static title = "Bank Run!";
@@ -34,24 +34,22 @@ export class BankRun implements Cartridge {
   resetCooldown = RESET_COOLDOWN;
   doodad: RenderTexture;
   bullet: RenderTexture;
-  money: RenderTexture;
   animationTicker = ANIMATION_PACE;
 
   async preload() {
     await engine.precache({
-      textures: ["house"],
+      textures: ["bank", "bankRun"],
       sounds: ["laser", "slash"],
     });
   }
   setup() {
     this.bullet = engine.generateTexture((g) => g.beginFill(0x00cc00).drawRect(0, 0, 3, 1));
     this.doodad = engine.generateTexture((g) => g.beginFill(0x666666).drawRect(0, 0, 1, 1));
-    this.money = engine.generateTexture((g) => g.beginFill(0x00ff00).drawRect(0, 0, 3, 3));
-    const playerTex = engine.generateTexture((g) => g.beginFill(0xffffff).drawRect(0, 0, 5, 7));
     this.player = engine.create<Player>({
       position: [10, 80],
-      texture: playerTex,
+      texture: "van",
       collides: true,
+      zIndex: 100,
       attrs: { gunCooldown: 0 },
     });
 
@@ -64,10 +62,23 @@ export class BankRun implements Cartridge {
 
     this.bank = engine.create<Bank>({
       position: [80, 80],
-      texture: "house",
+      texture: "bank",
       collides: true,
       tag: "bank",
       attrs: { state: "Asleep", timeout: 500, isRight: true },
+    });
+
+    // Hide bank legs behind this.
+    engine.create({
+      position: [80, 88],
+      texture: engine.generateTexture((g) => g.beginFill(0).drawRect(0, 0, 16, 8)),
+      tag: "mask",
+    });
+
+    engine.create({
+      position: [94, 70],
+      texture: "bankSign",
+      zIndex: 101,
     });
 
     this.tickCamera();
@@ -104,13 +115,14 @@ export class BankRun implements Cartridge {
       b.getCollisions({ tag: "bank" }).forEach(() => {
         engine.destroy(b);
         engine.playSound("crunch");
-        engine.create({
-          texture: this.money,
-          position: [this.bank.x, this.bank.y + randomPick([-10, 10])],
+        const dollar = engine.create({
+          texture: "dollar",
+          position: [this.bank.x, this.bank.y + randomPick([-15, 15])],
           lifetime: 10_000,
           tag: "money",
           collides: true,
         });
+        dollar.sprite.tint = 0x00ff00;
       });
 
       b.x += BULLET_SPEED;
@@ -180,11 +192,12 @@ export class BankRun implements Cartridge {
         }
         break;
       case "Waking":
-        this.bank.y -= 0.3;
+        this.bank.y -= 0.25;
         if (this.bank.timeout <= 0) {
           this.bank.state = "Down";
+          engine.playSound("laugh");
           this.bank.timeout = randomRange(300, 1200);
-          // TODO: make legs appear.
+          engine.getObjects({ tag: "mask" }).forEach((o) => engine.destroy(o));
         }
         break;
       case "Up":
@@ -209,7 +222,7 @@ export class BankRun implements Cartridge {
       this.animationTicker = Math.max(this.animationTicker - engine.tickDelta, 0);
       if (this.animationTicker === 0) {
         this.bank.isRight = !this.bank.isRight;
-        this.bank.setTexture(this.bank.isRight ? "houseSmall" : "house");
+        this.bank.setTexture(this.bank.isRight ? "bank" : "bankRun");
         this.animationTicker = ANIMATION_PACE;
       }
 
