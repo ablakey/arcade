@@ -35,6 +35,7 @@ export class BankRun implements Cartridge {
   doodad: RenderTexture;
   bullet: RenderTexture;
   animationTicker = ANIMATION_PACE;
+  playedGetawaySound = false;
 
   async preload() {
     await engine.precache({
@@ -61,7 +62,7 @@ export class BankRun implements Cartridge {
     }
 
     this.bank = engine.create<Bank>({
-      position: [80, 80],
+      position: [100, 80],
       texture: "bank",
       collides: true,
       tag: "bank",
@@ -70,13 +71,13 @@ export class BankRun implements Cartridge {
 
     // Hide bank legs behind this.
     engine.create({
-      position: [80, 88],
+      position: [100, 88],
       texture: engine.generateTexture((g) => g.beginFill(0).drawRect(0, 0, 16, 8)),
       tag: "mask",
     });
 
     engine.create({
-      position: [94, 70],
+      position: [114, 73],
       texture: "bankSign",
       zIndex: 101,
     });
@@ -252,6 +253,10 @@ export class BankRun implements Cartridge {
     }
 
     if (this.gameOverCountdown <= 0) {
+      if (!this.playedGetawaySound) {
+        this.playedGetawaySound = true;
+        engine.playSound("doorSlowOpen");
+      }
       engine.setText("GAME OVER", "Center");
       this.resetCooldown -= engine.tickDelta;
     }
