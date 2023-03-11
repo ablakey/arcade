@@ -28,6 +28,7 @@ export class Engine {
   private isRunning = false;
   private textCache: Partial<Record<TextPosition, string>> = {};
 
+  public now = 0;
   public nextCartridge: CartridgeName | null = null;
   public gameObjects: Map<number, GameObject> = new Map();
   public renderer: Renderer;
@@ -149,10 +150,18 @@ export class Engine {
   }
 
   private tick() {
-    const currentTime = performance.now();
-    const deltaTime = currentTime - this.lastTime;
+    this.now = performance.now();
+    const deltaTime = this.now - this.lastTime;
     this.tickDelta += deltaTime;
-    this.lastTime = currentTime;
+    this.lastTime = this.now;
+
+    this.gameObjects.forEach((o) => {
+      if (o.lifetime !== undefined && o.lifetime + o.created < this.now) {
+        this.destroy(o);
+      }
+    });
+
+    // this.setText(this.gameObjects.size.toString(), "TopLeft");
 
     if (this.currentCartridge && this.tickDelta > 1000 / FPS && this.isRunning) {
       this.isRunning = !(this.currentCartridge.tick() ?? false);

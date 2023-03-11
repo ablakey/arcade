@@ -6,6 +6,7 @@ import { genId, getPosition } from "./utils";
 export type GameObjectParams = {
   texture: Texture | TextureName;
   position: Position;
+  lifetime?: number;
   anchor?: Position;
   tag?: string;
   collides?: boolean;
@@ -17,6 +18,7 @@ export class GameObject {
   collides = false;
   tag?: string;
   created: number;
+  lifetime: number | undefined;
 
   get x() {
     return this.sprite.x;
@@ -60,16 +62,17 @@ export class GameObject {
   }
 
   constructor(params: GameObjectParams) {
-    const { texture, position, tag, collides, anchor } = params;
+    const { texture, position, tag, collides, anchor, lifetime } = params;
 
     this.sprite = new Sprite(typeof texture === "string" ? Texture.from(textures[texture]) : texture);
     this.x = position[0];
     this.y = position[1];
+    this.lifetime = lifetime;
     this.id = genId();
     this.sprite.anchor.set(...(anchor ?? [0.5]));
     this.tag = tag;
     this.collides = collides ?? false;
-    this.created = performance.now();
+    this.created = engine.now;
 
     return this;
   }
