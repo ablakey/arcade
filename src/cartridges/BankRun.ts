@@ -19,7 +19,7 @@ const STARTING_LIQUIDITY = 200;
 const BULLET_COST = 10;
 const GAME_OVER_COUNTDOWN = 2_500;
 const RESET_COOLDOWN = 3_000;
-const MONEY_VALUE = 40;
+const MONEY_VALUE = 30;
 const MONEY_DRAIN_RATE = 0.3;
 const ANIMATION_PACE = 250;
 const SHAKE_INTENSITY = 1.5;
@@ -39,8 +39,8 @@ export class BankRun implements Cartridge {
 
   async preload() {
     await engine.precache({
-      textures: ["bank", "bankRun"],
-      sounds: ["laser", "slash"],
+      textures: ["bank", "bankRun", "van", "dollar", "bankSign"],
+      sounds: ["laser", "slash", "laugh", "crunch", "trampoline", "confirm", "doorSlowOpen"],
     });
   }
   setup() {
@@ -138,7 +138,7 @@ export class BankRun implements Cartridge {
     if (this.isActive() && Math.random() > 1 - DOODAD_SPAWN_RATE) {
       engine.create({
         texture: this.doodad,
-        position: [this.player.x + 120, this.player.y + randomRange(-400, 400)],
+        position: [this.player.x + 160, this.player.y + randomRange(-400, 400)],
         lifetime: 10_000,
       });
     }
@@ -189,7 +189,8 @@ export class BankRun implements Cartridge {
       case "Asleep":
         if (getDistance(this.bank.position, this.player.position) < WAKE_DISTANCE) {
           this.bank.state = "Waking";
-          this.bank.timeout = 2_000;
+          engine.playSound("trampoline");
+          this.bank.timeout = 1_500;
         }
         break;
       case "Waking":
