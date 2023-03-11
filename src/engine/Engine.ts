@@ -4,7 +4,7 @@ import { assert } from "ts-essentials";
 import { SoundName, sounds } from "../assets/sounds";
 import { TextureName, textures } from "../assets/textures";
 import { CartridgeName, cartridges } from "../cartridges";
-import { BUTTONS, FPS, HEIGHT, INITIAL_CARTRIDGE, WIDTH } from "../config";
+import { BUTTONS, FPS, HEIGHT, INITIAL_CARTRIDGE, OVERLAY_FONT_SCALE, WIDTH } from "../config";
 import { GameObject, GameObjectParams } from "./GameObject";
 import { sleep } from "./utils";
 
@@ -90,7 +90,7 @@ export class Engine {
     // Set overlay font size relative to the actual size of the viewport.
     ["topleft", "topright", "bottomleft", "bottomright", "center"].forEach((c) => {
       const el = document.querySelector<HTMLDivElement>(`.gametext.${c}`)!;
-      el.style.fontSize = `${el.offsetWidth / 45}pt`;
+      el.style.fontSize = `${el.offsetWidth / OVERLAY_FONT_SCALE}pt`;
     });
 
     // Begin game loop.
@@ -168,7 +168,7 @@ export class Engine {
       }
     });
 
-    this.setText(this.gameObjects.size.toString(), "BottomLeft");
+    // this.setText(this.gameObjects.size.toString(), "BottomLeft");
 
     if (this.currentCartridge && this.tickDelta > 1000 / FPS && this.isRunning) {
       this.isRunning = !(this.currentCartridge.tick() ?? false);

@@ -89,7 +89,7 @@ export class SpyBalloon implements Cartridge {
       this.endGameDelay += engine.tickDelta;
     }
 
-    return this.endGameDelay < END_GAME_DELAY;
+    return this.endGameDelay >= END_GAME_DELAY;
   }
 
   /**
