@@ -149,8 +149,8 @@ export class Engine {
     this.setText("", "BottomRight");
     this.setText("", "TopLeft");
     this.setText("", "TopRight");
+    this.setCamera([this.width / 2, this.height / 2]);
 
-    console.log("prepare to unload.");
     setTimeout(() => {
       this.runCartridge(this.nextCartridge ?? INITIAL_CARTRIDGE);
       this.nextCartridge = null;

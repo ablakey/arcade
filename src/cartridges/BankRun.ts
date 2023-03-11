@@ -43,6 +43,7 @@ export class BankRun implements Cartridge {
       sounds: ["laser", "slash", "laugh", "crunch", "trampoline", "confirm", "doorSlowOpen"],
     });
   }
+
   setup() {
     this.bullet = engine.generateTexture((g) => g.beginFill(0x00cc00).drawRect(0, 0, 3, 1));
     this.doodad = engine.generateTexture((g) => g.beginFill(0x666666).drawRect(0, 0, 1, 1));
