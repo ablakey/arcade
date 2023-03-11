@@ -3,7 +3,7 @@ import { Cartridge } from "../engine/Engine";
 import { GameObject } from "../engine/GameObject";
 import { getDistance, getPosition, randomPick, randomRange } from "../engine/utils";
 
-type Bank = GameObject & { state: "Asleep" | "Waking" | "Up" | "Down"; timeout: number };
+type Bank = GameObject & { state: "Asleep" | "Waking" | "Up" | "Down"; timeout: number; isRight: boolean };
 type Player = GameObject & { gunCooldown: number };
 type Bullet = GameObject;
 
@@ -21,6 +21,8 @@ const GAME_OVER_COUNTDOWN = 3_000;
 const RESET_COOLDOWN = 3_000;
 const MONEY_VALUE = 50;
 const MONEY_DRAIN_RATE = 0.3;
+const ANIMATION_PACE = 250;
+const SHAKE_INTENSITY = 2;
 
 export class BankRun implements Cartridge {
   static title = "Bank Run!";
@@ -33,6 +35,7 @@ export class BankRun implements Cartridge {
   doodad: RenderTexture;
   bullet: RenderTexture;
   money: RenderTexture;
+  animationTicker = ANIMATION_PACE;
 
   async preload() {
     await engine.precache({
@@ -52,8 +55,6 @@ export class BankRun implements Cartridge {
       attrs: { gunCooldown: 0 },
     });
 
-    this.tickCamera();
-
     for (let x = 0; x < 100; x++) {
       engine.create({
         texture: this.doodad,
@@ -66,10 +67,10 @@ export class BankRun implements Cartridge {
       texture: "house",
       collides: true,
       tag: "bank",
-      attrs: { state: "Asleep", timeout: 500 },
+      attrs: { state: "Asleep", timeout: 500, isRight: true },
     });
 
-    this.bank.sprite.tint = 0x00ff00;
+    this.tickCamera();
   }
 
   isActive() {
@@ -161,7 +162,12 @@ export class BankRun implements Cartridge {
   }
 
   tickCamera() {
-    engine.setCamera([this.player.x + CAMERA_OFFSET, this.player.y]);
+    const shake = this.bank.state === "Waking";
+
+    engine.setCamera([
+      this.player.x + CAMERA_OFFSET + (shake ? randomRange(-SHAKE_INTENSITY, SHAKE_INTENSITY) : 0),
+      this.player.y + (shake ? randomRange(-SHAKE_INTENSITY, SHAKE_INTENSITY) : 0),
+    ]);
   }
 
   tickBank() {
@@ -174,7 +180,7 @@ export class BankRun implements Cartridge {
         }
         break;
       case "Waking":
-        // Moves up while shaking
+        this.bank.y -= 0.3;
         if (this.bank.timeout <= 0) {
           this.bank.state = "Down";
           this.bank.timeout = randomRange(300, 1200);
@@ -200,6 +206,13 @@ export class BankRun implements Cartridge {
     }
 
     if (this.isActive()) {
+      this.animationTicker = Math.max(this.animationTicker - engine.tickDelta, 0);
+      if (this.animationTicker === 0) {
+        this.bank.isRight = !this.bank.isRight;
+        this.bank.setTexture(this.bank.isRight ? "houseSmall" : "house");
+        this.animationTicker = ANIMATION_PACE;
+      }
+
       if (this.gameOverCountdown <= 0) {
         this.bank.x += BANK_SPEED * 2;
       } else {
