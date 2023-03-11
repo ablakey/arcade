@@ -161,7 +161,7 @@ export class Engine {
       }
     });
 
-    // this.setText(this.gameObjects.size.toString(), "TopLeft");
+    this.setText(this.gameObjects.size.toString(), "BottomLeft");
 
     if (this.currentCartridge && this.tickDelta > 1000 / FPS && this.isRunning) {
       this.isRunning = !(this.currentCartridge.tick() ?? false);
@@ -219,7 +219,7 @@ export class Engine {
    */
   public getObjects<T extends Record<string, any> = Record<string, never>>(options?: {
     collidable?: boolean;
-    tag?: T["tag"];
+    tag?: string;
   }): (T & GameObject)[] {
     return Array.from(this.gameObjects.values()).filter(
       (o) => (options?.collidable ? o.collides : true) && (options?.tag ? o.tag === options.tag : true)

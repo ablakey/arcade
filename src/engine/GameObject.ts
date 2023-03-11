@@ -81,12 +81,12 @@ export class GameObject {
     this.sprite.texture = typeof texture === "string" ? Texture.from(textures[texture]) : texture;
   }
 
-  getCollisions(): GameObject[] {
+  getCollisions(params?: { tag?: string }): GameObject[] {
     if (!this.collides) {
       return [];
     }
 
-    return engine.getObjects({ collidable: true }).filter((b) => {
+    return engine.getObjects({ collidable: true, tag: params?.tag }).filter((b) => {
       if (this === b) {
         return false;
       }
