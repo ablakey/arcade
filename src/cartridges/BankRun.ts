@@ -13,9 +13,11 @@ const WAKE_DISTANCE = 25;
 const BANK_PLAYER_GAP = 100;
 const CAMERA_OFFSET = 50;
 const BULLET_SPEED = 10;
-const GUN_COOLDOWN = 250;
+const GUN_COOLDOWN = 350;
 const STARTING_LIQUIDITY = 200;
 const BULLET_COST = 10;
+const GAME_OVER_COUNTDOWN = 3_000;
+const RESET_COOLDOWN = 1_000;
 
 export class BankRun implements Cartridge {
   static title = "Bank Run!";
@@ -23,6 +25,8 @@ export class BankRun implements Cartridge {
   player: Player;
   liquidityScore = STARTING_LIQUIDITY;
   actionWasPressed = false;
+  gameOverCountdown = GAME_OVER_COUNTDOWN;
+  resetCooldown = RESET_COOLDOWN;
   doodad: RenderTexture;
   bullet: RenderTexture;
   money: RenderTexture;
@@ -187,5 +191,20 @@ export class BankRun implements Cartridge {
     this.tickDoodads();
     this.tickCamera();
     this.tickWeapon();
+
+    if (this.gameOverCountdown <= 0) {
+      engine.setText("GAME OVER", "Center");
+      this.resetCooldown -= engine.tickDelta;
+    }
+
+    if (this.liquidityScore === 0) {
+      this.gameOverCountdown -= engine.tickDelta;
+    } else {
+      this.gameOverCountdown = GAME_OVER_COUNTDOWN;
+    }
+
+    if (engine.buttons.Action && this.resetCooldown <= 0) {
+      return true;
+    }
   }
 }

@@ -97,7 +97,14 @@ export class Engine {
     requestAnimationFrame(this.tick.bind(this));
 
     setTimeout(async () => {
-      this.runCartridge(INITIAL_CARTRIDGE);
+      const requestedGame = new URLSearchParams(window.location.search).get("game")?.toLowerCase() ?? "";
+      let cartridgeName: CartridgeName = INITIAL_CARTRIDGE;
+      Object.keys(cartridges).forEach((c) => {
+        if (c.toLowerCase() === requestedGame) {
+          cartridgeName = c as CartridgeName;
+        }
+      });
+      this.runCartridge(cartridgeName);
     }, 0);
   }
 
@@ -142,8 +149,8 @@ export class Engine {
     this.setText("", "TopLeft");
     this.setText("", "TopRight");
 
+    console.log("prepare to unload.");
     setTimeout(() => {
-      console.log(this.nextCartridge ?? INITIAL_CARTRIDGE);
       this.runCartridge(this.nextCartridge ?? INITIAL_CARTRIDGE);
       this.nextCartridge = null;
     }, 0);
