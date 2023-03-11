@@ -2,6 +2,8 @@ import { Cartridge } from "../engine/Engine";
 import { GameObject } from "../engine/GameObject";
 import { getPositionAt } from "../engine/utils";
 
+// TODO: very incomplete.
+
 export class TrolleyProblem implements Cartridge {
   static title = "Trolley Problem";
   train: GameObject;

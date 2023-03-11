@@ -6,9 +6,11 @@ import { genId, getPosition } from "./utils";
 export type GameObjectParams = {
   texture: Texture | TextureName;
   position: Position;
+  lifetime?: number;
   anchor?: Position;
   tag?: string;
   collides?: boolean;
+  zIndex?: number;
 };
 
 export class GameObject {
@@ -17,6 +19,7 @@ export class GameObject {
   collides = false;
   tag?: string;
   created: number;
+  lifetime: number | undefined;
 
   get x() {
     return this.sprite.x;
@@ -60,16 +63,18 @@ export class GameObject {
   }
 
   constructor(params: GameObjectParams) {
-    const { texture, position, tag, collides, anchor } = params;
+    const { texture, position, tag, collides, anchor, lifetime, zIndex } = params;
 
     this.sprite = new Sprite(typeof texture === "string" ? Texture.from(textures[texture]) : texture);
     this.x = position[0];
     this.y = position[1];
+    this.lifetime = lifetime;
     this.id = genId();
     this.sprite.anchor.set(...(anchor ?? [0.5]));
     this.tag = tag;
     this.collides = collides ?? false;
-    this.created = performance.now();
+    this.created = engine.now;
+    this.sprite.zIndex = zIndex ?? 0;
 
     return this;
   }
@@ -78,12 +83,12 @@ export class GameObject {
     this.sprite.texture = typeof texture === "string" ? Texture.from(textures[texture]) : texture;
   }
 
-  getCollisions(): GameObject[] {
+  getCollisions(params?: { tag?: string }): GameObject[] {
     if (!this.collides) {
       return [];
     }
 
-    return engine.getObjects({ collidable: true }).filter((b) => {
+    return engine.getObjects({ collidable: true, tag: params?.tag }).filter((b) => {
       if (this === b) {
         return false;
       }

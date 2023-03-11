@@ -65,7 +65,7 @@ export class SpyBalloon implements Cartridge {
     );
 
     // The gun lives forever so let's keep a reference to it rather than looking it up each time.
-    this.gun = engine.create({ texture: gunTexture, position: [GUN_POSITION_X, engine.height - 7] });
+    this.gun = engine.create({ texture: gunTexture, position: [GUN_POSITION_X, engine.height - 7], attrs: {} });
     this.gun.sprite.anchor.set(0);
     this.gun.rotation = -(Math.PI / 2);
     engine.create({ texture: gunBaseTexture, position: [GUN_POSITION_X, engine.height] });
@@ -89,7 +89,7 @@ export class SpyBalloon implements Cartridge {
       this.endGameDelay += engine.tickDelta;
     }
 
-    return this.endGameDelay < END_GAME_DELAY;
+    return this.endGameDelay >= END_GAME_DELAY;
   }
 
   /**

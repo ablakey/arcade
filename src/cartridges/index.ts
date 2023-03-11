@@ -1,6 +1,6 @@
 import { GameSelect } from "./GameSelect";
 import { SpyBalloon } from "./SpyBalloon";
-import { TrolleyProblem } from "./TrolleyProblem";
+import { BankRun } from "./BankRun";
 
-export const cartridges = { SpyBalloon, GameSelect, TrolleyProblem };
+export const cartridges = { SpyBalloon, GameSelect, BankRun };
 export type CartridgeName = keyof typeof cartridges;

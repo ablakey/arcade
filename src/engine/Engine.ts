@@ -4,7 +4,7 @@ import { assert } from "ts-essentials";
 import { SoundName, sounds } from "../assets/sounds";
 import { TextureName, textures } from "../assets/textures";
 import { CartridgeName, cartridges } from "../cartridges";
-import { BUTTONS, FPS, HEIGHT, INITIAL_CARTRIDGE, WIDTH } from "../config";
+import { BUTTONS, FPS, HEIGHT, INITIAL_CARTRIDGE, OVERLAY_FONT_SCALE, WIDTH } from "../config";
 import { GameObject, GameObjectParams } from "./GameObject";
 import { sleep } from "./utils";
 
@@ -15,7 +15,7 @@ export type Position = [number, number];
 export abstract class Cartridge {
   static title: string | undefined;
   abstract preload?(): Promise<void>;
-  abstract tick(): boolean;
+  abstract tick(): boolean | void;
   abstract setup(): Promise<void> | void;
 }
 
@@ -28,6 +28,7 @@ export class Engine {
   private isRunning = false;
   private textCache: Partial<Record<TextPosition, string>> = {};
 
+  public now = 0;
   public nextCartridge: CartridgeName | null = null;
   public gameObjects: Map<number, GameObject> = new Map();
   public renderer: Renderer;
@@ -51,6 +52,7 @@ export class Engine {
     });
 
     this.stage = new Container();
+    this.stage.sortableChildren = true;
 
     const buttonDown = (name: ButtonName, e: Event) => {
       document.querySelector(`#button${name}`)!.classList.add("active");
@@ -89,14 +91,21 @@ export class Engine {
     // Set overlay font size relative to the actual size of the viewport.
     ["topleft", "topright", "bottomleft", "bottomright", "center"].forEach((c) => {
       const el = document.querySelector<HTMLDivElement>(`.gametext.${c}`)!;
-      el.style.fontSize = `${el.offsetWidth / 45}pt`;
+      el.style.fontSize = `${el.offsetWidth / OVERLAY_FONT_SCALE}pt`;
     });
 
     // Begin game loop.
     requestAnimationFrame(this.tick.bind(this));
 
     setTimeout(async () => {
-      this.runCartridge(INITIAL_CARTRIDGE);
+      const requestedGame = new URLSearchParams(window.location.search).get("game")?.toLowerCase() ?? "";
+      let cartridgeName: CartridgeName = INITIAL_CARTRIDGE;
+      Object.keys(cartridges).forEach((c) => {
+        if (c.toLowerCase() === requestedGame) {
+          cartridgeName = c as CartridgeName;
+        }
+      });
+      this.runCartridge(cartridgeName);
     }, 0);
   }
 
@@ -118,6 +127,7 @@ export class Engine {
 
     await this.currentCartridge.setup();
     this.isRunning = true;
+    this.tickDelta = 0;
 
     // Run.
     this.lastTime = performance.now(); // Ignore accumulated time until now.
@@ -140,21 +150,29 @@ export class Engine {
     this.setText("", "TopLeft");
     this.setText("", "TopRight");
 
+    console.log("prepare to unload.");
     setTimeout(() => {
-      console.log(this.nextCartridge ?? INITIAL_CARTRIDGE);
       this.runCartridge(this.nextCartridge ?? INITIAL_CARTRIDGE);
       this.nextCartridge = null;
     }, 0);
   }
 
   private tick() {
-    const currentTime = performance.now();
-    const deltaTime = currentTime - this.lastTime;
+    this.now = performance.now();
+    const deltaTime = this.now - this.lastTime;
     this.tickDelta += deltaTime;
-    this.lastTime = currentTime;
+    this.lastTime = this.now;
+
+    this.gameObjects.forEach((o) => {
+      if (o.lifetime !== undefined && o.lifetime + o.created < this.now) {
+        this.destroy(o);
+      }
+    });
+
+    // this.setText(this.gameObjects.size.toString(), "BottomLeft");
 
     if (this.currentCartridge && this.tickDelta > 1000 / FPS && this.isRunning) {
-      this.isRunning = this.currentCartridge.tick();
+      this.isRunning = !(this.currentCartridge.tick() ?? false);
       this.tickDelta = 0;
     }
 
@@ -209,7 +227,7 @@ export class Engine {
    */
   public getObjects<T extends Record<string, any> = Record<string, never>>(options?: {
     collidable?: boolean;
-    tag?: T["tag"];
+    tag?: string;
   }): (T & GameObject)[] {
     return Array.from(this.gameObjects.values()).filter(
       (o) => (options?.collidable ? o.collides : true) && (options?.tag ? o.tag === options.tag : true)
