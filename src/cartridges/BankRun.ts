@@ -3,7 +3,7 @@ import { Cartridge } from "../engine/Engine";
 import { GameObject } from "../engine/GameObject";
 import { getDistance, getPosition, randomPick, randomRange } from "../engine/utils";
 
-type Bank = GameObject & { state: "Asleep" | "Waking" | "Up" | "Down"; timeout: number; isRight: boolean };
+type Bank = GameObject<{ state: "Asleep" | "Waking" | "Up" | "Down"; timeout: number; isRight: boolean }>;
 type Player = GameObject<{ gunCooldown: number }>;
 type Bullet = GameObject;
 
@@ -53,8 +53,7 @@ export class BankRun implements Cartridge {
       texture: "van",
       collides: true,
       zIndex: 100,
-      attrs: {},
-      // attrs: { gunCooldown: 0 },
+      data: { gunCooldown: 0 },
     });
 
     for (let x = 0; x < 100; x++) {
@@ -69,7 +68,7 @@ export class BankRun implements Cartridge {
       texture: "bank",
       collides: true,
       tag: "bank",
-      attrs: { state: "Asleep", timeout: 500, isRight: true },
+      data: { state: "Asleep", timeout: 500, isRight: true },
     });
 
     this.scoreText = engine.create({
@@ -95,7 +94,7 @@ export class BankRun implements Cartridge {
   }
 
   isActive() {
-    return this.bank.state === "Up" || this.bank.state === "Down";
+    return this.bank.data.state === "Up" || this.bank.data.state === "Down";
   }
 
   fireGun() {
@@ -112,13 +111,13 @@ export class BankRun implements Cartridge {
   }
 
   tickWeapon() {
-    if (this.isActive() && engine.buttons.Action && this.player.gunCooldown <= 0) {
+    if (this.isActive() && engine.buttons.Action && this.player.data.gunCooldown <= 0) {
       if (this.liquidityScore >= BULLET_COST) {
         this.fireGun();
       } else {
         engine.playSound("slash");
       }
-      this.player.gunCooldown = GUN_COOLDOWN;
+      this.player.data.gunCooldown = GUN_COOLDOWN;
     }
 
     engine.getObjects<Bullet>({ tag: "bullet" }).forEach((b) => {
@@ -139,7 +138,7 @@ export class BankRun implements Cartridge {
     });
 
     this.scoreText.text = `LIQUIDITY ${this.liquidityScore.toFixed(0)}`;
-    this.player.gunCooldown -= engine.tickDelta;
+    this.player.data.gunCooldown -= engine.tickDelta;
   }
 
   tickDoodads() {
@@ -155,7 +154,7 @@ export class BankRun implements Cartridge {
   tickPlayer() {
     this.actionWasPressed = engine.buttons.Action;
 
-    if (this.bank.state === "Asleep") {
+    if (this.bank.data.state === "Asleep") {
       if (engine.buttons.Right) {
         this.player.x += BANK_SPEED;
       } else if (engine.buttons.Left) {
@@ -163,7 +162,7 @@ export class BankRun implements Cartridge {
       }
     }
 
-    if (this.bank.state !== "Waking") {
+    if (this.bank.data.state !== "Waking") {
       if (engine.buttons.Up) {
         this.player.y -= PLAYER_Y_SPEED;
       } else if (engine.buttons.Down) {
@@ -183,7 +182,7 @@ export class BankRun implements Cartridge {
   }
 
   tickCamera() {
-    const shake = this.bank.state === "Waking";
+    const shake = this.bank.data.state === "Waking";
 
     engine.setCamera([
       this.player.x + CAMERA_OFFSET + (shake ? randomRange(-SHAKE_INTENSITY, SHAKE_INTENSITY) : 0),
@@ -193,46 +192,46 @@ export class BankRun implements Cartridge {
 
   tickBank() {
     // The poor man's FSM.
-    switch (this.bank.state) {
+    switch (this.bank.data.state) {
       case "Asleep":
         if (getDistance(this.bank.position, this.player.position) < WAKE_DISTANCE) {
-          this.bank.state = "Waking";
+          this.bank.data.state = "Waking";
           engine.playSound("trampoline");
-          this.bank.timeout = 1_500;
+          this.bank.data.timeout = 1_500;
         }
         break;
       case "Waking":
         this.bank.y -= 0.25;
-        if (this.bank.timeout <= 0) {
-          this.bank.state = "Down";
+        if (this.bank.data.timeout <= 0) {
+          this.bank.data.state = "Down";
           engine.playSound("laugh");
-          this.bank.timeout = randomRange(300, 1200);
+          this.bank.data.timeout = randomRange(300, 1200);
           engine.getObjects({ tag: "mask" }).forEach((o) => engine.destroy(o));
         }
         break;
       case "Up":
-        if (this.bank.timeout <= 0) {
-          this.bank.state = "Down";
-          this.bank.timeout = randomRange(300, 1200);
+        if (this.bank.data.timeout <= 0) {
+          this.bank.data.state = "Down";
+          this.bank.data.timeout = randomRange(300, 1200);
         }
         break;
       case "Down":
-        if (this.bank.timeout <= 0) {
-          this.bank.state = "Up";
-          this.bank.timeout = randomRange(300, 1200);
+        if (this.bank.data.timeout <= 0) {
+          this.bank.data.state = "Up";
+          this.bank.data.timeout = randomRange(300, 1200);
         }
         break;
     }
 
-    if (this.bank.state !== "Asleep") {
-      this.bank.timeout -= engine.tickDelta;
+    if (this.bank.data.state !== "Asleep") {
+      this.bank.data.timeout -= engine.tickDelta;
     }
 
     if (this.isActive()) {
       this.animationTicker = Math.max(this.animationTicker - engine.tickDelta, 0);
       if (this.animationTicker === 0) {
-        this.bank.isRight = !this.bank.isRight;
-        this.bank.setTexture(this.bank.isRight ? "bank" : "bankRun");
+        this.bank.data.isRight = !this.bank.data.isRight;
+        this.bank.setTexture(this.bank.data.isRight ? "bank" : "bankRun");
         this.animationTicker = ANIMATION_PACE;
       }
 
@@ -243,9 +242,9 @@ export class BankRun implements Cartridge {
       }
     }
 
-    if (this.bank.state === "Up") {
+    if (this.bank.data.state === "Up") {
       this.bank.y += BANK_SPEED;
-    } else if (this.bank.state === "Down") {
+    } else if (this.bank.data.state === "Down") {
       this.bank.y -= BANK_SPEED;
     }
   }

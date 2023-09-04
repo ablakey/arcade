@@ -15,9 +15,9 @@ const BALLOON_LIFESPAN = 7_000;
 const TOTAL_BALLOONS = 5;
 const END_GAME_DELAY = 3_000;
 
-type House = GameObject & { isAlive: boolean; tag: "house" };
-type Bullet = GameObject & { angle: number };
-type Balloon = GameObject & { state: "RightUp" | "RightDown" | "Crashing" | "Crashed" };
+type House = GameObject<{ isAlive: boolean }>;
+type Bullet = GameObject<{ angle: number }>;
+type Balloon = GameObject<{ state: "RightUp" | "RightDown" | "Crashing" | "Crashed" }>;
 
 /**
  * Balloon Shoot is my first game, written in February, 2023. It's probably a huge mess as I was figuring out the engine
@@ -59,14 +59,14 @@ export class SpyBalloon implements Cartridge {
       engine.create<House>({
         texture: "houseSmall",
         position: [p, engine.height - 4],
-        attrs: { isAlive: true },
+        data: { isAlive: true },
         tag: "house",
         collides: true,
       })
     );
 
     // The gun lives forever so let's keep a reference to it rather than looking it up each time.
-    this.gun = engine.create({ texture: gunTexture, position: [GUN_POSITION_X, engine.height - 7], attrs: {} });
+    this.gun = engine.create({ texture: gunTexture, position: [GUN_POSITION_X, engine.height - 7] });
     this.gun.sprite.anchor.set(0);
     this.gun.rotation = -(Math.PI / 2);
     engine.create({ texture: gunBaseTexture, position: [GUN_POSITION_X, engine.height] });
@@ -105,7 +105,7 @@ export class SpyBalloon implements Cartridge {
       balloon = engine.create<Balloon>({
         texture: "balloon",
         position: [0, 0],
-        attrs: { state: "RightUp" },
+        data: { state: "RightUp" },
         tag: "balloon",
         collides: true,
       });
@@ -120,29 +120,29 @@ export class SpyBalloon implements Cartridge {
 
     if (
       performance.now() - balloon.created > BALLOON_LIFESPAN &&
-      balloon.state !== "Crashing" &&
-      balloon.state !== "Crashed"
+      balloon.data.state !== "Crashing" &&
+      balloon.data.state !== "Crashed"
     ) {
       engine.destroy(balloon);
       this.hitCount++;
       return;
     }
 
-    switch (balloon.state) {
+    switch (balloon.data.state) {
       case "RightUp":
       case "RightDown":
         if (balloon.y <= 10) {
-          balloon.state = "RightDown";
+          balloon.data.state = "RightDown";
         } else if (balloon.y >= 35) {
-          balloon.state = "RightUp";
+          balloon.data.state = "RightUp";
         }
         balloon.x += BALLOON_SPEED;
-        balloon.y += balloon.state === "RightUp" ? -BALLOON_SPEED : BALLOON_SPEED;
+        balloon.y += balloon.data.state === "RightUp" ? -BALLOON_SPEED : BALLOON_SPEED;
         break;
       case "Crashing":
         balloon.y += BALLOON_CRASHING_SPEED;
         if (balloon.y >= engine.height) {
-          balloon.state = "Crashed";
+          balloon.data.state = "Crashed";
           balloon.collides = false;
           engine.playSound("bump");
           this.hitCount++;
@@ -173,8 +173,8 @@ export class SpyBalloon implements Cartridge {
   handleHouses() {
     engine.getObjects<House>({ tag: "house" }).forEach((h) => {
       h.getCollisions().forEach((t) => {
-        if (t.tag === "balloon" && h.isAlive) {
-          h.isAlive = false;
+        if (t.tag === "balloon" && h.data.isAlive) {
+          h.data.isAlive = false;
           h.setTexture("houseSmallDestroyed");
           engine.playSound("crunch");
           this.addScore(-50);
@@ -190,12 +190,12 @@ export class SpyBalloon implements Cartridge {
         return;
       }
 
-      b.move(b.angle, BULLET_SPEED);
+      b.move(b.data.angle, BULLET_SPEED);
       b.getCollisions().forEach((c) => {
         if (c.tag === "balloon") {
           const balloon = c as Balloon;
           engine.destroy(b);
-          balloon.state = "Crashing";
+          balloon.data.state = "Crashing";
           balloon.setTexture("balloonCrashing");
           engine.playSound("explosion");
           this.addScore(100);
@@ -216,7 +216,7 @@ export class SpyBalloon implements Cartridge {
     engine.create<Bullet>({
       texture: this.bulletTexture,
       position,
-      attrs: { angle },
+      data: { angle },
       collides: true,
       tag: "bullet",
     });

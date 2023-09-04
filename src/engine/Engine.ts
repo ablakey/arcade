@@ -192,7 +192,7 @@ export class Engine {
    * Create a GameObject and assign it to the stage and collection of GameObjects. A developer can optionally add
    * additional attributes to a GameObject as part of the `attrs` object.
    */
-  public create<G extends Record<string, any>>(params: GameObjectParams<G>): GameObject<G> {
+  public create<G extends GameObject>(params: GameObjectParams<G["data"]>): G {
     const obj = new GameObject(params);
     this.gameObjects.set(obj.id, obj);
 
@@ -202,7 +202,7 @@ export class Engine {
       this.stage.addChild(obj.sprite);
     }
 
-    return obj as GameObject<G>;
+    return obj as G;
   }
 
   /**
@@ -224,13 +224,10 @@ export class Engine {
    * Return a collection of objects based on query parameters. The parameters are an intersection, meaning that it will
    * provide all objects that fit the provided tag AND if it is collidable.
    */
-  public getObjects<T extends Record<string, any> = Record<string, never>>(options?: {
-    collidable?: boolean;
-    tag?: string;
-  }): (T & GameObject)[] {
+  public getObjects<G extends GameObject>(options?: { collidable?: boolean; tag?: string }): G[] {
     return Array.from(this.gameObjects.values()).filter(
       (o) => (options?.collidable ? o.collides : true) && (options?.tag ? o.tag === options.tag : true)
-    ) as (T & GameObject)[];
+    ) as G[];
   }
 
   /**

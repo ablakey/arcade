@@ -9,7 +9,7 @@ const anchorPositions = {
   TopRight: [1, 0],
 };
 
-export type GameObjectParams<A extends Record<string, any> = Record<string, any>> = {
+export type GameObjectParams<D extends Record<string, any> = Record<string, any>> = {
   texture?: Texture | TextureName;
   text?: string;
   position: Position;
@@ -22,10 +22,10 @@ export type GameObjectParams<A extends Record<string, any> = Record<string, any>
   color?: number;
   flipX?: boolean;
   flipY?: boolean;
-  attrs?: A;
+  data?: D;
 };
 
-export class GameObject<A extends Record<string, any> = Record<string, any>> {
+export class GameObject<D extends Record<string, any> = Record<string, any>> {
   id: number;
   sprite: Sprite | Text;
   collides = false;
@@ -33,7 +33,7 @@ export class GameObject<A extends Record<string, any> = Record<string, any>> {
   created: number;
   lifetime: number | undefined;
   absolute: boolean;
-  attrs: A;
+  data: D;
 
   set text(text: string | number) {
     (this.sprite as Text).text = text;
@@ -92,8 +92,8 @@ export class GameObject<A extends Record<string, any> = Record<string, any>> {
     this.sprite.tint = color;
   }
 
-  constructor(params: GameObjectParams<A>) {
-    const { texture, position, tag, collides, anchor, lifetime, zIndex, text, color, flipX, flipY, absolute, attrs } =
+  constructor(params: GameObjectParams<D>) {
+    const { texture, position, tag, collides, anchor, lifetime, zIndex, text, color, flipX, flipY, absolute, data } =
       params;
 
     const tex = texture
@@ -119,7 +119,7 @@ export class GameObject<A extends Record<string, any> = Record<string, any>> {
     this.sprite.roundPixels = true;
     this.sprite.tint = color ?? 0xffffff;
     this.sprite.scale = { x: flipX ? -1 : 1, y: flipY ? -1 : 1 };
-    this.attrs = attrs ?? ({} as A);
+    this.data = data ?? ({} as D);
 
     if (anchor) {
       const [x, y] = anchorPositions[anchor];
