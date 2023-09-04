@@ -192,14 +192,8 @@ export class Engine {
    * Create a GameObject and assign it to the stage and collection of GameObjects. A developer can optionally add
    * additional attributes to a GameObject as part of the `attrs` object.
    */
-  public create<G extends Record<string, any> = Record<string, never>>(
-    params: GameObjectParams & {
-      attrs?: Omit<G, keyof GameObject | "tag">;
-    }
-  ): GameObject & G {
-    const { attrs, ...rest } = params;
-    const obj = new GameObject(rest);
-    Object.assign(obj, attrs ?? {});
+  public create<G extends Record<string, any>>(params: GameObjectParams<G>): GameObject<G> {
+    const obj = new GameObject(params);
     this.gameObjects.set(obj.id, obj);
 
     if (obj.absolute) {
@@ -208,7 +202,7 @@ export class Engine {
       this.stage.addChild(obj.sprite);
     }
 
-    return obj as GameObject & G;
+    return obj as GameObject<G>;
   }
 
   /**

@@ -4,7 +4,7 @@ import { GameObject } from "../engine/GameObject";
 import { getDistance, getPosition, randomPick, randomRange } from "../engine/utils";
 
 type Bank = GameObject & { state: "Asleep" | "Waking" | "Up" | "Down"; timeout: number; isRight: boolean };
-type Player = GameObject & { gunCooldown: number };
+type Player = GameObject<{ gunCooldown: number }>;
 type Bullet = GameObject;
 
 const BANK_SPEED = 2.5;
@@ -53,7 +53,8 @@ export class BankRun implements Cartridge {
       texture: "van",
       collides: true,
       zIndex: 100,
-      attrs: { gunCooldown: 0 },
+      attrs: {},
+      // attrs: { gunCooldown: 0 },
     });
 
     for (let x = 0; x < 100; x++) {
