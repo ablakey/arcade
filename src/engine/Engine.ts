@@ -4,7 +4,7 @@ import { assert } from "ts-essentials";
 import { SoundName, sounds } from "../assets/sounds";
 import { TextureName, textures } from "../assets/textures";
 import { CartridgeName, cartridges } from "../cartridges";
-import { BUTTONS, FPS, HEIGHT, INITIAL_CARTRIDGE, WIDTH } from "../config";
+import { BUTTONS, FPS, HEIGHT, WIDTH } from "../config";
 import { GameObject, GameObjectParams } from "./GameObject";
 import { sleep } from "./utils";
 import { Pos } from "./Pos";
@@ -101,7 +101,7 @@ export class Engine {
 
     setTimeout(async () => {
       const requestedGame = new URLSearchParams(window.location.search).get("game")?.toLowerCase() ?? "";
-      let cartridgeName: CartridgeName = INITIAL_CARTRIDGE;
+      let cartridgeName: CartridgeName = "GameSelect";
       Object.keys(cartridges).forEach((c) => {
         if (c.toLowerCase() === requestedGame) {
           cartridgeName = c as CartridgeName;
@@ -112,6 +112,8 @@ export class Engine {
   }
 
   public async runCartridge(name: CartridgeName) {
+    window.history.pushState("", "", `?game=${name.toLowerCase()}`);
+
     const Cartridge = cartridges[name];
     // Setup. Run `preload` while the title is showing. This may be game assets to download.
     const cartridge = new Cartridge();
@@ -146,7 +148,7 @@ export class Engine {
     this.setCamera([this.width / 2, this.height / 2]);
 
     setTimeout(() => {
-      this.runCartridge(this.nextCartridge ?? INITIAL_CARTRIDGE);
+      this.runCartridge(this.nextCartridge ?? "GameSelect");
       this.nextCartridge = null;
     }, 0);
   }
@@ -162,8 +164,6 @@ export class Engine {
         this.destroy(o);
       }
     });
-
-    // this.setText(this.gameObjects.size.toString(), "BottomLeft");
 
     if (this.currentCartridge && this.tickDelta > 1000 / FPS && this.isRunning) {
       this.isRunning = !(this.currentCartridge.tick() ?? false);
@@ -240,9 +240,10 @@ export class Engine {
   /**
    * Imperatively draw a texture using the `Pixi.Graphics` API, which is basically the Canvas drawing API.
    */
-  public generateTexture(drawCallback: (graphics: Graphics) => void) {
+  public drawTexture(drawCallback: (graphics: Graphics) => void) {
     const g = new Graphics();
     drawCallback(g);
+    this.renderer;
     return this.renderer.generateTexture(g);
   }
 

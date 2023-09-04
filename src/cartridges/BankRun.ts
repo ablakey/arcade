@@ -47,8 +47,8 @@ export class BankRun implements Cartridge {
   }
 
   setup() {
-    this.bullet = engine.generateTexture((g) => g.beginFill(0x00cc00).drawRect(0, 0, 3, 1));
-    this.doodad = engine.generateTexture((g) => g.beginFill(0x666666).drawRect(0, 0, 1, 1));
+    this.bullet = engine.drawTexture((g) => g.beginFill(0x00cc00).drawRect(0, 0, 3, 1));
+    this.doodad = engine.drawTexture((g) => g.beginFill(0x666666).drawRect(0, 0, 1, 1));
     this.player = engine.create<Player>({
       position: [10, 80],
       texture: "van",
@@ -81,7 +81,7 @@ export class BankRun implements Cartridge {
     // Hide bank legs behind this.
     engine.create({
       position: [100, 88],
-      texture: engine.generateTexture((g) => g.beginFill(0).drawRect(0, 0, 16, 8)),
+      texture: engine.drawTexture((g) => g.beginFill(0).drawRect(0, 0, 16, 8)),
       tag: "mask",
     });
 
