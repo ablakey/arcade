@@ -1,7 +1,8 @@
 import { RenderTexture } from "pixi.js";
 import { Cartridge } from "../engine/Engine";
 import { GameObject } from "../engine/GameObject";
-import { getDistance, getPosition, randomPick, randomRange } from "../engine/utils";
+import { Pos } from "../engine/Pos";
+import { Random } from "../engine/Random";
 
 type Bank = GameObject<{ state: "Asleep" | "Waking" | "Up" | "Down"; timeout: number; isRight: boolean }>;
 type Player = GameObject<{ gunCooldown: number }>;
@@ -59,7 +60,7 @@ export class BankRun implements Cartridge {
     for (let x = 0; x < 100; x++) {
       engine.create({
         texture: this.doodad,
-        position: [this.player.x + randomRange(-200, +200), this.player.y + randomRange(-200, 200)],
+        position: [this.player.x + Random.range(-200, +200), this.player.y + Random.range(-200, 200)],
       });
     }
 
@@ -98,7 +99,7 @@ export class BankRun implements Cartridge {
   }
 
   fireGun() {
-    const position = getPosition(this.player.position, 0, 3);
+    const position = Pos.posAt(this.player.position, 0, 3);
     engine.create<Bullet>({
       texture: this.bullet,
       position,
@@ -126,7 +127,7 @@ export class BankRun implements Cartridge {
         engine.playSound("crunch");
         engine.create({
           texture: "dollar",
-          position: [this.bank.x, this.bank.y + randomPick([-15, 15])],
+          position: [this.bank.x, this.bank.y + Random.pick([-15, 15])],
           lifetime: 10_000,
           tag: "money",
           collides: true,
@@ -145,7 +146,7 @@ export class BankRun implements Cartridge {
     if (this.isActive() && Math.random() > 1 - DOODAD_SPAWN_RATE) {
       engine.create({
         texture: this.doodad,
-        position: [this.player.x + 160, this.player.y + randomRange(-400, 400)],
+        position: [this.player.x + 160, this.player.y + Random.range(-400, 400)],
         lifetime: 10_000,
       });
     }
@@ -185,8 +186,8 @@ export class BankRun implements Cartridge {
     const shake = this.bank.data.state === "Waking";
 
     engine.setCamera([
-      this.player.x + CAMERA_OFFSET + (shake ? randomRange(-SHAKE_INTENSITY, SHAKE_INTENSITY) : 0),
-      this.player.y + (shake ? randomRange(-SHAKE_INTENSITY, SHAKE_INTENSITY) : 0),
+      this.player.x + CAMERA_OFFSET + (shake ? Random.range(-SHAKE_INTENSITY, SHAKE_INTENSITY) : 0),
+      this.player.y + (shake ? Random.range(-SHAKE_INTENSITY, SHAKE_INTENSITY) : 0),
     ]);
   }
 
@@ -194,7 +195,7 @@ export class BankRun implements Cartridge {
     // The poor man's FSM.
     switch (this.bank.data.state) {
       case "Asleep":
-        if (getDistance(this.bank.position, this.player.position) < WAKE_DISTANCE) {
+        if (Pos.distance(this.bank.position, this.player.position) < WAKE_DISTANCE) {
           this.bank.data.state = "Waking";
           engine.playSound("trampoline");
           this.bank.data.timeout = 1_500;
@@ -205,20 +206,20 @@ export class BankRun implements Cartridge {
         if (this.bank.data.timeout <= 0) {
           this.bank.data.state = "Down";
           engine.playSound("laugh");
-          this.bank.data.timeout = randomRange(300, 1200);
+          this.bank.data.timeout = Random.range(300, 1200);
           engine.getObjects({ tag: "mask" }).forEach((o) => engine.destroy(o));
         }
         break;
       case "Up":
         if (this.bank.data.timeout <= 0) {
           this.bank.data.state = "Down";
-          this.bank.data.timeout = randomRange(300, 1200);
+          this.bank.data.timeout = Random.range(300, 1200);
         }
         break;
       case "Down":
         if (this.bank.data.timeout <= 0) {
           this.bank.data.state = "Up";
-          this.bank.data.timeout = randomRange(300, 1200);
+          this.bank.data.timeout = Random.range(300, 1200);
         }
         break;
     }

@@ -7,8 +7,7 @@ import { CartridgeName, cartridges } from "../cartridges";
 import { BUTTONS, FPS, HEIGHT, INITIAL_CARTRIDGE, WIDTH } from "../config";
 import { GameObject, GameObjectParams } from "./GameObject";
 import { sleep } from "./utils";
-
-export type Position = [number, number];
+import { Pos } from "./Pos";
 
 export abstract class Cartridge {
   static readonly title?: string;
@@ -259,7 +258,7 @@ export class Engine {
     sound.play();
   }
 
-  public setCamera(position: Position) {
+  public setCamera(position: Pos) {
     this.stage.pivot.x = position[0];
     this.stage.pivot.y = position[1];
     this.stage.position.x = this.renderer.width / 2;

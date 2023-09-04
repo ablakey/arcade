@@ -1,7 +1,7 @@
 import { Sprite, Text, Texture } from "pixi.js";
 import { TextureName, textures } from "../assets/textures";
-import { Position } from "./Engine";
-import { genId, getPosition } from "./utils";
+import { genId } from "./utils";
+import { Pos } from "./Pos";
 
 const anchorPositions = {
   TopLeft: [0, 0],
@@ -12,7 +12,7 @@ const anchorPositions = {
 export type GameObjectParams<D extends Record<string, any> = Record<string, any>> = {
   texture?: Texture | TextureName;
   text?: string;
-  position: Position;
+  position: Pos;
   absolute?: boolean;
   lifetime?: number;
   anchor?: keyof typeof anchorPositions;
@@ -67,11 +67,11 @@ export class GameObject<D extends Record<string, any> = Record<string, any>> {
     this.sprite.rotation = rotation;
   }
 
-  get position(): Position {
+  get position(): Pos {
     return [this.x, this.y];
   }
 
-  set position(p: Position) {
+  set position(p: Pos) {
     this.x = p[0];
     this.y = p[1];
   }
@@ -163,7 +163,7 @@ export class GameObject<D extends Record<string, any> = Record<string, any>> {
   }
 
   move(angle: number, distance: number) {
-    const [x, y] = getPosition(this.position, angle, distance);
+    const [x, y] = Pos.posAt(this.position, angle, distance);
     this.x = x;
     this.y = y;
   }

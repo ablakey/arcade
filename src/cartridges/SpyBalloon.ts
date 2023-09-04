@@ -1,7 +1,7 @@
 import { Texture } from "pixi.js";
 import { Cartridge } from "../engine/Engine";
 import { GameObject } from "../engine/GameObject";
-import { getPosition } from "../engine/utils";
+import { Pos } from "../engine/Pos";
 
 const HOUSE_POSITIONS = [30, 40, 50, 60, 100, 110, 120, 130];
 const GUN_POSITION_X = 80;
@@ -211,7 +211,7 @@ export class SpyBalloon implements Cartridge {
 
   fireGun() {
     const angle = this.gun.rotation;
-    const position = getPosition(this.gun.position, this.gun.rotation, 7);
+    const position = Pos.posAt(this.gun.position, this.gun.rotation, 7);
     engine.playSound("gun");
     engine.create<Bullet>({
       texture: this.bulletTexture,
