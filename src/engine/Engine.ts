@@ -4,7 +4,7 @@ import { assert } from "ts-essentials";
 import { SoundName, sounds } from "../assets/sounds";
 import { TextureName, textures } from "../assets/textures";
 import { CartridgeName, cartridges } from "../cartridges";
-import { BUTTONS, FPS, HEIGHT, INITIAL_CARTRIDGE, OVERLAY_FONT_SCALE, WIDTH } from "../config";
+import { BUTTONS, FPS, HEIGHT, INITIAL_CARTRIDGE, WIDTH } from "../config";
 import { GameObject, GameObjectParams } from "./GameObject";
 import { sleep } from "./utils";
 
@@ -22,7 +22,10 @@ export abstract class Cartridge {
 export type ButtonName = (typeof BUTTONS)[number]["name"];
 
 export class Engine {
+  private renderContainer: Container;
   private stage: Container;
+  private stageAbsolute: Container;
+
   private lastTime = 0;
   private currentCartridge: Cartridge | undefined;
   private isRunning = false;
@@ -53,6 +56,13 @@ export class Engine {
 
     this.stage = new Container();
     this.stage.sortableChildren = true;
+
+    this.stageAbsolute = new Container();
+    this.stageAbsolute.sortableChildren = true;
+
+    this.renderContainer = new Container();
+    this.renderContainer.addChild(this.stage);
+    this.renderContainer.addChild(this.stageAbsolute);
 
     const buttonDown = (name: ButtonName, e: Event) => {
       document.querySelector(`#button${name}`)!.classList.add("active");
@@ -88,12 +98,6 @@ export class Engine {
       }
     });
 
-    // Set overlay font size relative to the actual size of the viewport.
-    ["topleft", "topright", "bottomleft", "bottomright", "center"].forEach((c) => {
-      const el = document.querySelector<HTMLDivElement>(`.gametext.${c}`)!;
-      el.style.fontSize = `${el.offsetWidth / OVERLAY_FONT_SCALE}pt`;
-    });
-
     // Begin game loop.
     requestAnimationFrame(this.tick.bind(this));
 
@@ -116,14 +120,10 @@ export class Engine {
     this.currentCartridge = cartridge;
 
     if (Cartridge.title) {
-      this.setText(Cartridge.title.toUpperCase());
-      await Promise.all([sleep(1600), this.currentCartridge.preload?.()]);
-    } else {
+      this.create({ text: Cartridge.title.toUpperCase(), position: [80, 60], lifetime: 1600 });
+      await sleep(1600);
       await this.currentCartridge.preload?.();
     }
-
-    // Show title for a while and perform asset preload.
-    await this.setText("");
 
     await this.currentCartridge.setup();
     this.isRunning = true;
@@ -143,12 +143,8 @@ export class Engine {
     // Cleanup.
     this.currentCartridge = undefined;
     this.stage.removeChildren();
+    this.stageAbsolute.removeChildren();
     this.gameObjects.clear();
-    this.setText("");
-    this.setText("", "BottomLeft");
-    this.setText("", "BottomRight");
-    this.setText("", "TopLeft");
-    this.setText("", "TopRight");
     this.setCamera([this.width / 2, this.height / 2]);
 
     setTimeout(() => {
@@ -176,7 +172,7 @@ export class Engine {
       this.tickDelta = 0;
     }
 
-    this.renderer.render(this.stage);
+    this.renderer.render(this.renderContainer);
 
     requestAnimationFrame(this.tick.bind(this));
   }
@@ -194,8 +190,7 @@ export class Engine {
 
   /**
    * Create a GameObject and assign it to the stage and collection of GameObjects. A developer can optionally add
-   * additional attributes to a GameObject, as long as the attribute names aren't already in use by the GameObject. This
-   * is for convenience to prevent having to access something like `myObj.attrs.myAttr` and instead have: `myObj.attr`.
+   * additional attributes to a GameObject as part of the `attrs` object.
    */
   public create<G extends Record<string, any> = Record<string, never>>(
     params: GameObjectParams & {
@@ -206,7 +201,12 @@ export class Engine {
     const obj = new GameObject(rest);
     Object.assign(obj, attrs ?? {});
     this.gameObjects.set(obj.id, obj);
-    this.stage.addChild(obj.sprite);
+
+    if (obj.absolute) {
+      this.stageAbsolute.addChild(obj.sprite);
+    } else {
+      this.stage.addChild(obj.sprite);
+    }
 
     return obj as GameObject & G;
   }
@@ -217,7 +217,12 @@ export class Engine {
   public destroy(obj: number | GameObject) {
     const object = typeof obj === "number" ? this.gameObjects.get(obj) : obj;
     assert(object);
-    this.stage.removeChild(object.sprite);
+
+    if (object.absolute) {
+      this.stageAbsolute.removeChild(object.sprite);
+    } else {
+      this.stage.removeChild(object.sprite);
+    }
     this.gameObjects.delete(object.id);
   }
 
@@ -241,24 +246,6 @@ export class Engine {
     const g = new Graphics();
     drawCallback(g);
     return this.renderer.generateTexture(g);
-  }
-
-  /**
-   * Set text on the screen in one of five positions. Optionally pick an alignment for the text, which is generally
-   * only useful if you want the Center position to be centered or left justified. The text remains visible until it is
-   * overwritten. Set an empty string to clear.
-   *
-   * The textCache is used to prevent unnecessary DOM updates. They're far more expensive than some string work. This
-   * way games don't have to worry too hard about calling setText only once if they want to report state.
-   */
-  public setText(text: string, position: TextPosition = "Center", textAlign: "Left" | "Center" = "Left") {
-    const cacheString = `${position}${text}`;
-    if (this.textCache[position] !== cacheString) {
-      this.textCache[position] = cacheString;
-      const element = document.querySelector<HTMLDivElement>(`.gametext.${position?.toLowerCase()}`)!;
-      element.style.textAlign = textAlign?.toLowerCase();
-      element.innerText = text;
-    }
   }
 
   /**

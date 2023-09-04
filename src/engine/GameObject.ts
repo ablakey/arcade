@@ -1,25 +1,45 @@
-import { Sprite, Texture } from "pixi.js";
+import { Sprite, Text, Texture } from "pixi.js";
 import { TextureName, textures } from "../assets/textures";
 import { Position } from "./Engine";
 import { genId, getPosition } from "./utils";
 
+const anchorPositions = {
+  TopLeft: [0, 0],
+  Center: [0.5, 0.5],
+  TopRight: [1, 0],
+};
+
 export type GameObjectParams = {
-  texture: Texture | TextureName;
+  texture?: Texture | TextureName;
+  text?: string;
   position: Position;
+  absolute?: boolean;
   lifetime?: number;
-  anchor?: Position;
+  anchor?: keyof typeof anchorPositions;
   tag?: string;
   collides?: boolean;
   zIndex?: number;
+  color?: number;
+  flipX?: boolean;
+  flipY?: boolean;
 };
 
 export class GameObject {
   id: number;
-  sprite: Sprite;
+  sprite: Sprite | Text;
   collides = false;
   tag?: string;
   created: number;
   lifetime: number | undefined;
+  absolute: boolean;
+
+  set text(text: string | number) {
+    (this.sprite as Text).text = text;
+  }
+
+  get text() {
+    return (this.sprite as Text).text;
+  }
 
   get x() {
     return this.sprite.x;
@@ -62,19 +82,49 @@ export class GameObject {
     return this.sprite.width;
   }
 
-  constructor(params: GameObjectParams) {
-    const { texture, position, tag, collides, anchor, lifetime, zIndex } = params;
+  get color() {
+    return this.sprite.tint;
+  }
 
-    this.sprite = new Sprite(typeof texture === "string" ? Texture.from(textures[texture]) : texture);
+  set color(color: number) {
+    this.sprite.tint = color;
+  }
+
+  constructor(params: GameObjectParams) {
+    const { texture, position, tag, collides, anchor, lifetime, zIndex, text, color, flipX, flipY, absolute } = params;
+
+    const tex = texture
+      ? new Sprite(typeof texture === "string" ? Texture.from(textures[texture]) : texture)
+      : new Text(text ?? "<ERR>", {
+          fill: ["#ffffff"],
+          fontFamily: "Apple",
+          fontSize: 8,
+          letterSpacing: -1,
+        });
+
+    // By default, text is absolute, others are not.
+    this.absolute = absolute ?? text ? true : false;
+    this.sprite = tex;
     this.x = position[0];
     this.y = position[1];
     this.lifetime = lifetime;
     this.id = genId();
-    this.sprite.anchor.set(...(anchor ?? [0.5]));
     this.tag = tag;
     this.collides = collides ?? false;
     this.created = engine.now;
     this.sprite.zIndex = zIndex ?? 0;
+    this.sprite.roundPixels = true;
+    this.sprite.tint = color ?? 0xffffff;
+    this.sprite.scale = { x: flipX ? -1 : 1, y: flipY ? -1 : 1 };
+
+    if (anchor) {
+      const [x, y] = anchorPositions[anchor];
+      this.sprite.anchor.x = x;
+      this.sprite.anchor.y = y;
+    } else {
+      this.sprite.anchor.x = 0.5;
+      this.sprite.anchor.y = 0.5;
+    }
 
     return this;
   }

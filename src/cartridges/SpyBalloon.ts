@@ -35,6 +35,7 @@ export class SpyBalloon implements Cartridge {
   hitCount = 0;
   score = 0;
   endGameDelay = 0;
+  scoreText: GameObject;
 
   async preload() {
     await engine.precache({
@@ -70,7 +71,7 @@ export class SpyBalloon implements Cartridge {
     this.gun.rotation = -(Math.PI / 2);
     engine.create({ texture: gunBaseTexture, position: [GUN_POSITION_X, engine.height] });
 
-    this.addScore(0);
+    this.scoreText = engine.create({ text: `SCORE: ${this.score}`, anchor: "TopRight", position: [160, 1] });
   }
 
   /**
@@ -85,7 +86,7 @@ export class SpyBalloon implements Cartridge {
     this.handleHouses();
 
     if (this.hitCount >= TOTAL_BALLOONS) {
-      engine.setText("GAME OVER");
+      engine.create({ text: "GAME OVER", position: [80, 60], anchor: "Center" });
       this.endGameDelay += engine.tickDelta;
     }
 
@@ -205,7 +206,7 @@ export class SpyBalloon implements Cartridge {
 
   addScore(score: number) {
     this.score += score;
-    engine.setText(`SCORE: ${this.score}`, "TopRight");
+    this.scoreText.text = `SCORE: ${this.score}`;
   }
 
   fireGun() {

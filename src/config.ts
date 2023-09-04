@@ -17,8 +17,5 @@ export const BUTTONS = [
   { name: "Action", codes: ["Space", "Enter"] },
 ] as const;
 
-export const OVERLAY_FONT_SCALE = 33; // A relative scale attempting to make pixelated font same size as pixels.
-
 // Debug tool to skip game select.
-// export const INITIAL_CARTRIDGE: CartridgeName = "GameSelect";
 export const INITIAL_CARTRIDGE: CartridgeName = "GameSelect";

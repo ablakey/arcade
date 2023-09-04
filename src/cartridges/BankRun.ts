@@ -36,6 +36,7 @@ export class BankRun implements Cartridge {
   bullet: RenderTexture;
   animationTicker = ANIMATION_PACE;
   playedGetawaySound = false;
+  scoreText: GameObject;
 
   async preload() {
     await engine.precache({
@@ -68,6 +69,12 @@ export class BankRun implements Cartridge {
       collides: true,
       tag: "bank",
       attrs: { state: "Asleep", timeout: 500, isRight: true },
+    });
+
+    this.scoreText = engine.create({
+      text: `LIQUIDITY ${this.liquidityScore}`,
+      position: [0, 1],
+      anchor: "TopLeft",
     });
 
     // Hide bank legs behind this.
@@ -117,22 +124,21 @@ export class BankRun implements Cartridge {
       b.getCollisions({ tag: "bank" }).forEach(() => {
         engine.destroy(b);
         engine.playSound("crunch");
-        const dollar = engine.create({
+        engine.create({
           texture: "dollar",
           position: [this.bank.x, this.bank.y + randomPick([-15, 15])],
           lifetime: 10_000,
           tag: "money",
           collides: true,
+          color: 0x00ff00,
         });
-        dollar.sprite.tint = 0x00ff00;
       });
 
       b.x += BULLET_SPEED;
     });
 
+    this.scoreText.text = `LIQUIDITY ${this.liquidityScore.toFixed(0)}`;
     this.player.gunCooldown -= engine.tickDelta;
-
-    engine.setText(`LIQUIDITY: ${this.liquidityScore.toFixed(0)}`, "TopLeft");
   }
 
   tickDoodads() {
@@ -258,8 +264,8 @@ export class BankRun implements Cartridge {
       if (!this.playedGetawaySound) {
         this.playedGetawaySound = true;
         engine.playSound("doorSlowOpen");
+        engine.create({ text: "GAME OVER", anchor: "Center", position: [80, 60] });
       }
-      engine.setText("GAME OVER", "Center");
       this.resetCooldown -= engine.tickDelta;
     }
 

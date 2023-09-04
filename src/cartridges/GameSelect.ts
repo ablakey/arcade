@@ -1,5 +1,6 @@
 import { CartridgeName, cartridges } from ".";
 import { Cartridge } from "../engine/Engine";
+import { GameObject } from "../engine/GameObject";
 
 const DEBOUNCE = 200;
 
@@ -9,6 +10,7 @@ export class GameSelect implements Cartridge {
   titleList: [CartridgeName, typeof Cartridge][] = [];
   selectIndex = 0;
   cooldown = 500; // Prevent initial mis-select.
+  titleObj: GameObject;
 
   setup() {
     this.titleList = Object.entries(cartridges).filter(([, cartridge]) => cartridge.title) as [
@@ -16,13 +18,19 @@ export class GameSelect implements Cartridge {
       typeof Cartridge
     ][];
 
+    engine.create({ text: "PICK A GAME", position: [80, 40] });
+    engine.create({ text: "^", position: [80, 70] });
+    engine.create({ text: "^", position: [80, 90], flipY: true });
+
     this.renderText();
   }
 
   renderText() {
+    if (this.titleObj) {
+      this.titleObj.lifetime = 0;
+    }
     const title = `${this.selectIndex + 1} - ${this.titleList[this.selectIndex][1].title}`;
-    const text = `PICK A GAME\n\n\n\n▲\n\n${title}\n\n▼`;
-    engine.setText(text, "Center", "Center");
+    this.titleObj = engine.create({ text: title, position: [80, 80] });
   }
 
   tick() {
