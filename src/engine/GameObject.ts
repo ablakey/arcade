@@ -134,6 +134,7 @@ export class GameObject<D extends Record<string, any> = Record<string, any>> {
   }
 
   setTexture(texture: Texture | TextureName) {
+    engine.checkCache(texture);
     this.sprite.texture = typeof texture === "string" ? Texture.from(textures[texture]) : texture;
   }
 

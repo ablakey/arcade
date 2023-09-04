@@ -1,5 +1,5 @@
 import { Howl } from "howler";
-import { Assets, BaseTexture, Container, Graphics, Renderer, SCALE_MODES } from "pixi.js";
+import { Assets, BaseTexture, Container, Graphics, Renderer, SCALE_MODES, Texture } from "pixi.js";
 import { assert } from "ts-essentials";
 import { SoundName, sounds } from "../assets/sounds";
 import { TextureName, textures } from "../assets/textures";
@@ -8,13 +8,11 @@ import { BUTTONS, FPS, HEIGHT, INITIAL_CARTRIDGE, WIDTH } from "../config";
 import { GameObject, GameObjectParams } from "./GameObject";
 import { sleep } from "./utils";
 
-type TextPosition = "TopLeft" | "TopRight" | "BottomLeft" | "BottomRight" | "Center";
-
 export type Position = [number, number];
 
 export abstract class Cartridge {
-  static title: string | undefined;
-  abstract preload?(): Promise<void>;
+  static readonly title?: string;
+  abstract preload(): Promise<void>;
   abstract tick(): boolean | void;
   abstract setup(): Promise<void> | void;
 }
@@ -29,7 +27,8 @@ export class Engine {
   private lastTime = 0;
   private currentCartridge: Cartridge | undefined;
   private isRunning = false;
-  private textCache: Partial<Record<TextPosition, string>> = {};
+
+  private precached: { sounds: SoundName[]; textures: TextureName[] };
 
   public now = 0;
   public nextCartridge: CartridgeName | null = null;
@@ -177,6 +176,12 @@ export class Engine {
     requestAnimationFrame(this.tick.bind(this));
   }
 
+  checkCache(texture?: Texture | TextureName) {
+    if (typeof texture === "string" && !engine.precached.textures.includes(texture)) {
+      console.warn(`Tried to create GameObject with texture: ${texture}, which was not precached.`);
+    }
+  }
+
   /**
    * Precache a subset of assets for a given game. This allows a game to decide what assets it wants to use, without
    * precaching all of them. As a result, the engine can provide a lot of assets but only prepare the ones needed.
@@ -184,6 +189,7 @@ export class Engine {
    * If an asset is used that isn't precached, it might cause a bit of lag as it waits to download it.
    */
   public precache(options: { sounds?: SoundName[]; textures?: TextureName[] }) {
+    this.precached = { sounds: [], textures: [], ...options };
     options.sounds?.forEach((s) => new Howl({ src: sounds[s], preload: true }));
     return Promise.all(options.textures?.map((a) => Assets.load(textures[a])) ?? []);
   }
@@ -193,6 +199,8 @@ export class Engine {
    * additional attributes to a GameObject as part of the `attrs` object.
    */
   public create<G extends GameObject>(params: GameObjectParams<G["data"]>): G {
+    this.checkCache(params.texture);
+
     const obj = new GameObject(params);
     this.gameObjects.set(obj.id, obj);
 
@@ -243,6 +251,10 @@ export class Engine {
    * Play a sound once. If a sound is not precached, it may not play the first time.
    */
   public playSound(name: SoundName) {
+    if (!this.precached.sounds.includes(name)) {
+      console.warn(`Tried to create GameObject with sound: ${name}, which was not precached.`);
+    }
+
     const sound = new Howl({ src: sounds[name], volume: 0.5 });
     sound.play();
   }

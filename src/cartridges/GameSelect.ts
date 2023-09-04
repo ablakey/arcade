@@ -12,6 +12,8 @@ export class GameSelect implements Cartridge {
   cooldown = 500; // Prevent initial mis-select.
   titleObj: GameObject;
 
+  async preload() {}
+
   setup() {
     this.titleList = Object.entries(cartridges).filter(([, cartridge]) => cartridge.title) as [
       CartridgeName,
