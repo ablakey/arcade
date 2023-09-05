@@ -237,6 +237,17 @@ export class Engine {
     ) as G[];
   }
 
+  public get<G extends GameObject>(tag: string): G | undefined {
+    let obj: G | undefined = undefined;
+    this.gameObjects.forEach((g) => {
+      if (g.tag === tag) {
+        obj = g as G;
+      }
+    });
+
+    return obj;
+  }
+
   /**
    * Imperatively draw a texture using the `Pixi.Graphics` API, which is basically the Canvas drawing API.
    */

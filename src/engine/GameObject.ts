@@ -43,6 +43,14 @@ export class GameObject<D extends Record<string, any> = Record<string, any>> {
     return (this.sprite as Text).text;
   }
 
+  get visible() {
+    return this.sprite.visible;
+  }
+
+  set visible(isVisible: boolean) {
+    this.sprite.visible = isVisible;
+  }
+
   get x() {
     return this.sprite.x;
   }
